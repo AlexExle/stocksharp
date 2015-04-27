@@ -107,15 +107,20 @@ namespace StockSharp.Transaq
 					{
 						if (mdMsg.NewsId.IsEmpty())
 						{
-							var count = (int)mdMsg.Count;
+							var count = mdMsg.Count;
 
-							if (count <= 0)
-								throw new InvalidOperationException(LocalizedStrings.Str3511Params.Put(count));
+							if (count == 0)
+								count = MaxNewsHeaderCount;
+							else
+							{
+								if (count < 0)
+									throw new InvalidOperationException(LocalizedStrings.Str3511Params.Put(count));
 
-							if (count > MaxNewsHeaderCount)
-								throw new InvalidOperationException(LocalizedStrings.Str3512Params.Put(count, MaxNewsHeaderCount));
-
-							SendCommand(new RequestOldNewsMessage { Count = count });
+								if (count > MaxNewsHeaderCount)
+									throw new InvalidOperationException(LocalizedStrings.Str3512Params.Put(count, MaxNewsHeaderCount));
+							}
+							
+							SendCommand(new RequestOldNewsMessage { Count = (int)count });
 						}
 						else
 						{
@@ -130,24 +135,37 @@ namespace StockSharp.Transaq
 					if (mdMsg.IsSubscribe)
 					{
 						var periodId = _candlePeriods.GetKeys((TimeSpan)mdMsg.Arg).First();
+						var secId = (int)mdMsg.SecurityId.Native;
+						var key = Tuple.Create(secId, periodId);
 
-						_candleTransactions.Add(Tuple.Create((int)mdMsg.SecurityId.Native, periodId), mdMsg.TransactionId);
+						_candleTransactions.Add(key, mdMsg.TransactionId);
 
 						var command = new RequestHistoryDataMessage
 						{
-							SecId = (int)mdMsg.SecurityId.Native,
+							SecId = secId,
 							Period = periodId,
 							Count = mdMsg.Count,
 							Reset = mdMsg.To == DateTimeOffset.MaxValue,
 						};
 
-						SendCommand(command);
+						try
+						{
+							SendCommand(command);
+						}
+						catch (Exception)
+						{
+							_candleTransactions.Remove(key);
+							throw;
+						}
 					}
 
 					break;
 				}
 				default:
-					throw new ArgumentOutOfRangeException("mdMsg", mdMsg.DataType, LocalizedStrings.Str1618);
+				{
+					SendOutMarketDataNotSupported(mdMsg.TransactionId);
+					return;
+				}
 			}
 
 			var reply = (MarketDataMessage)mdMsg.Clone();
@@ -272,7 +290,7 @@ namespace StockSharp.Transaq
 			{
 				Id = response.Id.To<string>(),
 				Story = response.Text,
-				ServerTime = SessionHolder.CurrentTime.Convert(TimeHelper.Moscow)
+				ServerTime = CurrentTime.Convert(TimeHelper.Moscow)
 			});
 		}
 
@@ -285,7 +303,7 @@ namespace StockSharp.Transaq
 				Id = response.Id.To<string>(),
 				Story = response.Text,
 				ServerTime = response.TimeStamp == null
-					? SessionHolder.CurrentTime.Convert(TimeHelper.Moscow)
+					? CurrentTime.Convert(TimeHelper.Moscow)
 					: response.TimeStamp.Value.ApplyTimeZone(TimeHelper.Moscow),
 			});
 		}
@@ -297,7 +315,7 @@ namespace StockSharp.Transaq
 				var message = new Level1ChangeMessage
 				{
 					SecurityId = new SecurityId { Native = quote.SecId },
-					ServerTime = SessionHolder.CurrentTime.Convert(TimeHelper.Moscow),
+					ServerTime = CurrentTime.Convert(TimeHelper.Moscow),
 				};
 
 				message.TryAdd(Level1Fields.AccruedCouponIncome, quote.AccruedIntValue);
@@ -377,7 +395,7 @@ namespace StockSharp.Transaq
 					SecurityId = new SecurityId { Native = group.Key },
 					Bids = tuple.Item1.Select(p => new QuoteChange(Sides.Buy, p.Key, p.Value)).ToArray(),
 					Asks = tuple.Item2.Select(p => new QuoteChange(Sides.Sell, p.Key, p.Value)).ToArray(),
-					ServerTime = SessionHolder.CurrentTime.Convert(TimeHelper.Moscow),
+					ServerTime = CurrentTime.Convert(TimeHelper.Moscow),
 				});
 			}
 		}
@@ -401,7 +419,7 @@ namespace StockSharp.Transaq
 			var l1Msg = new Level1ChangeMessage
 			{
 				SecurityId = new SecurityId { Native = response.SecId },
-				ServerTime = SessionHolder.CurrentTime.Convert(TimeHelper.Moscow),
+				ServerTime = CurrentTime.Convert(TimeHelper.Moscow),
 			};
 
 			l1Msg.TryAdd(Level1Fields.MinPrice, response.MinPrice);
@@ -440,6 +458,7 @@ namespace StockSharp.Transaq
 					SecurityId = securityId,
 					Multiplier = security.LotSize,
 					PriceStep = security.MinStep,
+					Decimals = security.Decimals,
 					ShortName = security.ShortName,
 					SecurityType = security.Type.FromTransaq(),
 				});
@@ -448,7 +467,7 @@ namespace StockSharp.Transaq
 					new Level1ChangeMessage
 					{
 						SecurityId = securityId,
-						ServerTime = SessionHolder.CurrentTime.Convert(TimeHelper.Moscow),
+						ServerTime = CurrentTime.Convert(TimeHelper.Moscow),
 					}
 					.Add(Level1Fields.State, security.Active ? SecurityStates.Trading : SecurityStates.Stoped)
 					.TryAdd(Level1Fields.StepPrice, security.PointCost));
@@ -516,7 +535,7 @@ namespace StockSharp.Transaq
 					Headline = message.Text,
 					Story = message.Text,
 					ServerTime = message.Date == null
-						? SessionHolder.CurrentTime.Convert(TimeHelper.Moscow)
+						? CurrentTime.Convert(TimeHelper.Moscow)
 						: message.Date.Value.ApplyTimeZone(TimeHelper.Moscow),
 				});
 			}

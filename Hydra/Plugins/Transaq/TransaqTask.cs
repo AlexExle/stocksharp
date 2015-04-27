@@ -27,6 +27,7 @@ namespace StockSharp.Hydra.Transaq
 		private const string _sourceName = "Transaq";
 
 		[TaskSettingsDisplayName(_sourceName)]
+		[CategoryOrder(_sourceName, 0)]
 		private sealed class TransaqSettings : ConnectorHydraTaskSettings
 		{
 			public TransaqSettings(HydraTaskSettings settings)
@@ -181,7 +182,7 @@ namespace StockSharp.Hydra.Transaq
 			get { return _supportedCandleSeries; }
 		}
 
-		protected override MarketDataConnector<TransaqTrader> CreateTrader(HydraTaskSettings settings)
+		protected override MarketDataConnector<TransaqTrader> CreateConnector(HydraTaskSettings settings)
 		{
 			_settings = new TransaqSettings(settings);
 

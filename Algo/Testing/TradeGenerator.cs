@@ -31,7 +31,7 @@
 		private IdGenerator _idGenerator;
 
 		/// <summary>
-		/// Генератор номера сделки <see cref="Trade.Id"/>.
+		/// Генератор идентификатора сделки <see cref="Trade.Id"/>.
 		/// </summary>
 		public IdGenerator IdGenerator
 		{
@@ -98,11 +98,11 @@
 					{
 						case ExecutionTypes.Tick:
 						case ExecutionTypes.Trade:
-							_lastTradePrice = execMsg.TradePrice;
+							_lastTradePrice = execMsg.TradePrice.Value;
 							break;
 						case ExecutionTypes.OrderLog:
-							if (execMsg.TradePrice != 0)
-								_lastTradePrice = execMsg.TradePrice;
+							if (execMsg.TradePrice != null)
+								_lastTradePrice = execMsg.TradePrice.Value;
 							break;
 						default:
 							return null;
@@ -138,10 +138,12 @@
 				ExecutionType = ExecutionTypes.Tick
 			};
 
-			_lastTradePrice += RandomGen.GetInt(-MaxPriceStepCount, MaxPriceStepCount) * SecurityDefinition.PriceStep;
+			var priceStep = SecurityDefinition.PriceStep ?? 0.01m;
+
+			_lastTradePrice += RandomGen.GetInt(-MaxPriceStepCount, MaxPriceStepCount) * priceStep;
 
 			if (_lastTradePrice <= 0)
-				_lastTradePrice = SecurityDefinition.PriceStep;
+				_lastTradePrice = priceStep;
 
 			trade.TradePrice = _lastTradePrice;
 

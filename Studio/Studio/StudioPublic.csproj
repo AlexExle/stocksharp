@@ -61,6 +61,21 @@
     <Reference Include="MoreLinq">
       <HintPath>..\..\References\Ecng\MoreLinq.dll</HintPath>
     </Reference>
+    <Reference Include="StockSharp.Algo.History">
+      <HintPath>..\..\Algo.History\StockSharp.Algo.History.dll</HintPath>
+    </Reference>
+    <Reference Include="StockSharp.Algo.Strategies">
+      <HintPath>..\..\Algo.Strategies\StockSharp.Algo.Strategies.dll</HintPath>
+    </Reference>
+    <Reference Include="StockSharp.Fix">
+      <HintPath>..\..\Connectors\Fix\StockSharp.Fix.dll</HintPath>
+    </Reference>
+    <Reference Include="StockSharp.Xaml.Charting">
+      <HintPath>..\..\Xaml.Charting\StockSharp.Xaml.Charting.dll</HintPath>
+    </Reference>
+    <Reference Include="StockSharp.Xaml.Diagram">
+      <HintPath>..\..\Xaml.Diagram\StockSharp.Xaml.Diagram.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Data" />
@@ -138,13 +153,7 @@
       <HintPath>..\..\References\Ecng\Ecng.Xaml.dll</HintPath>
     </Reference>
     <Reference Include="Northwoods.GoWPF">
-      <HintPath>..\..\References\Northwoods.GoWPF.dll</HintPath>
-    </Reference>
-    <Reference Include="Ookii.Dialogs.Wpf">
-      <HintPath>..\..\References\Ookii.Dialogs.Wpf.dll</HintPath>
-    </Reference>
-    <Reference Include="QuickFix">
-      <HintPath>..\..\References\QuickFix.dll</HintPath>
+      <HintPath>..\..\Xaml.Diagram\Northwoods.GoWPF.dll</HintPath>
     </Reference>
     <Reference Include="Xceed.Wpf.Toolkit">
       <HintPath>..\..\References\Ecng\Xceed.Wpf.Toolkit.dll</HintPath>
@@ -395,53 +404,8 @@
     <Resource Include="StockSharp.db" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="StockSharp.Algo.History">
-      <HintPath>..\..\References\StockSharp.Algo.History.dll</HintPath>
-    </Reference>
-    <Reference Include="StockSharp.Algo.Strategies">
-      <HintPath>..\..\References\StockSharp.Algo.Strategies.dll</HintPath>
-    </Reference>
-    <Reference Include="StockSharp.BitStamp">
-      <HintPath>..\..\References\StockSharp.BitStamp.dll</HintPath>
-    </Reference>
-    <Reference Include="StockSharp.Blackwood">
-      <HintPath>..\..\References\StockSharp.Blackwood.dll</HintPath>
-    </Reference>
-    <Reference Include="StockSharp.ETrade">
-      <HintPath>..\..\References\StockSharp.ETrade.dll</HintPath>
-    </Reference>
-    <Reference Include="StockSharp.Fix">
-      <HintPath>..\..\References\StockSharp.Fix.dll</HintPath>
-    </Reference>
-    <Reference Include="StockSharp.InteractiveBrokers">
-      <HintPath>..\..\References\StockSharp.InteractiveBrokers.dll</HintPath>
-    </Reference>
-    <Reference Include="StockSharp.IQFeed">
-      <HintPath>..\..\References\StockSharp.IQFeed.dll</HintPath>
-    </Reference>
-    <Reference Include="StockSharp.Micex">
-      <HintPath>..\..\References\StockSharp.Micex.dll</HintPath>
-    </Reference>
-    <Reference Include="StockSharp.Oanda">
-      <HintPath>..\..\References\StockSharp.Oanda.dll</HintPath>
-    </Reference>
-    <Reference Include="StockSharp.Plaza">
-      <HintPath>..\..\References\StockSharp.Plaza.dll</HintPath>
-    </Reference>
-    <Reference Include="StockSharp.Rithmic">
-      <HintPath>..\..\References\StockSharp.Rithmic.dll</HintPath>
-    </Reference>
-    <Reference Include="StockSharp.Quik">
-      <HintPath>..\..\References\StockSharp.Quik.dll</HintPath>
-    </Reference>
     <Reference Include="StockSharp.Licensing">
       <HintPath>..\..\References\StockSharp.Licensing.dll</HintPath>
-    </Reference>
-    <Reference Include="StockSharp.Xaml.Charting">
-      <HintPath>..\..\References\StockSharp.Xaml.Charting.dll</HintPath>
-    </Reference>
-    <Reference Include="StockSharp.Xaml.Diagram">
-      <HintPath>..\..\References\StockSharp.Xaml.Diagram.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -562,9 +526,9 @@
       <Project>{B47F9C23-A4BD-46A9-BF27-54CB3D653503}</Project>
       <Name>Messages</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Xaml\XamlPublic.csproj">
+    <ProjectReference Include="..\..\Xaml\Xaml.csproj">
       <Project>{64E4D6F0-36B6-4904-9BA7-FFFBE5FF71D8}</Project>
-      <Name>XamlPublic</Name>
+      <Name>Xaml</Name>
     </ProjectReference>
     <ProjectReference Include="..\Controls\ControlsPublic.csproj">
       <Project>{6d205f4b-6b2a-4082-b717-f6baaa4e0f3a}</Project>

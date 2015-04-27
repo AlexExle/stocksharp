@@ -23,6 +23,7 @@ namespace StockSharp.Hydra.Rss
 		private const string _sourceName = "RSS";
 
 		[TaskSettingsDisplayName(_sourceName)]
+		[CategoryOrder(_sourceName, 0)]
 		private sealed class RssSettings : ConnectorHydraTaskSettings
 		{
 			public RssSettings(HydraTaskSettings settings)
@@ -95,7 +96,7 @@ namespace StockSharp.Hydra.Rss
 			get { return _settings; }
 		}
 
-		protected override MarketDataConnector<RssTrader> CreateTrader(HydraTaskSettings settings)
+		protected override MarketDataConnector<RssTrader> CreateConnector(HydraTaskSettings settings)
 		{
 			_settings = new RssSettings(settings);
 

@@ -12,14 +12,16 @@ namespace StockSharp.Messages
 	/// <summary>
 	/// Сообщение поиска инструментов по заданному критерию.
 	/// </summary>
+	[DataContract]
+	[Serializable]
 	public class SecurityLookupMessage : SecurityMessage, IEquatable<SecurityLookupMessage>
 	{
 		/// <summary>
-		/// Номер транзакции.
+		/// Идентификатор транзакции.
 		/// </summary>
 		[DataMember]
-		[DisplayNameLoc(LocalizedStrings.Str230Key)]
-		[DescriptionLoc(LocalizedStrings.TransactionIdKey)]
+		[DisplayNameLoc(LocalizedStrings.TransactionKey)]
+		[DescriptionLoc(LocalizedStrings.TransactionIdKey, true)]
 		[MainCategory]
 		public long TransactionId { get; set; }
 

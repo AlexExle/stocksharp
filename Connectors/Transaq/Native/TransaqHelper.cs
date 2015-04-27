@@ -6,14 +6,13 @@ namespace StockSharp.Transaq.Native
 
 	using StockSharp.BusinessEntities;
 	using StockSharp.Messages;
-
 	using StockSharp.Transaq.Native.Commands;
 	using StockSharp.Transaq.Native.Responses;
 	using StockSharp.Localization;
 
 	static class TransaqHelper
 	{
-		public static NewOrderUnfilleds ToTransaq(this TimeInForce cond)
+		public static NewOrderUnfilleds ToTransaq(this TimeInForce? cond)
 		{
 			switch (cond)
 			{
@@ -24,6 +23,7 @@ namespace StockSharp.Transaq.Native
 					return NewOrderUnfilleds.ImmOrCancel;
 
 				case TimeInForce.PutInQueue:
+				case null:
 					return NewOrderUnfilleds.PutInQueue;
 
 				default:
@@ -69,11 +69,11 @@ namespace StockSharp.Transaq.Native
 			return new NewStopOrderElement
 			{
 				ActivationPrice = cond.StopLossActivationPrice,
-				OrderPrice = cond.StopLossOrderPrice == null ? null : cond.StopLossOrderPrice.ToString(),
+				OrderPrice = cond.StopLossOrderPrice.To<string>(),
 				ByMarket = cond.StopLossByMarket,
-				Quantity = cond.StopLossVolume.ToString(),
+				Quantity = cond.StopLossVolume.To<string>(),
 				UseCredit = cond.StopLossUseCredit,
-				GuardTime = cond.StopLossGuardTime,
+				GuardTime = cond.StopLossProtectionTime,
 				BrokerRef = cond.StopLossComment
 			};
 		}
@@ -87,12 +87,12 @@ namespace StockSharp.Transaq.Native
 			{
 				ActivationPrice = cond.TakeProfitActivationPrice,
 				ByMarket = cond.TakeProfitByMarket,
-				Quantity = cond.TakeProfitVolume.ToString(),
+				Quantity = cond.TakeProfitVolume.To<string>(),
 				UseCredit = cond.TakeProfitUseCredit,
-				GuardTime = cond.TakeProfitGuardTime,
+				GuardTime = cond.TakeProfitProtectionTime,
 				BrokerRef = cond.TakeProfitComment,
-				Correction = cond.TakeProfitCorrection == null ? null : cond.TakeProfitCorrection.ToString(),
-				Spread = cond.TakeProfitGuardSpread == null ? null : cond.TakeProfitGuardSpread.ToString()
+				Correction = cond.TakeProfitCorrection.To<string>(),
+				Spread = cond.TakeProfitProtectionSpread.To<string>()
 			};
 		}
 
@@ -105,7 +105,7 @@ namespace StockSharp.Transaq.Native
 				(cond.StopLossVolume != null && cond.StopLossVolume.Type != UnitTypes.Absolute & cond.StopLossVolume.Type != UnitTypes.Percent) ||
 				(cond.TakeProfitVolume != null && cond.TakeProfitVolume.Type != UnitTypes.Absolute & cond.TakeProfitVolume.Type != UnitTypes.Percent) ||
 				(cond.TakeProfitCorrection != null && cond.TakeProfitCorrection.Type != UnitTypes.Absolute & cond.TakeProfitCorrection.Type != UnitTypes.Percent) ||
-				(cond.TakeProfitGuardSpread != null && cond.TakeProfitGuardSpread.Type != UnitTypes.Absolute & cond.TakeProfitGuardSpread.Type != UnitTypes.Percent))
+				(cond.TakeProfitProtectionSpread != null && cond.TakeProfitProtectionSpread.Type != UnitTypes.Absolute & cond.TakeProfitProtectionSpread.Type != UnitTypes.Percent))
 			{
 				return false;
 			}

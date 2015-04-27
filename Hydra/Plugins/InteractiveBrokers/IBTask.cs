@@ -24,6 +24,7 @@ namespace StockSharp.Hydra.InteractiveBrokers
 		private const string _sourceName = "Interactive Brokers";
 
 		[TaskSettingsDisplayName(_sourceName)]
+		[CategoryOrder(_sourceName, 0)]
 		private sealed class IBSettings : ConnectorHydraTaskSettings
 		{
 			private const string _category = _sourceName;
@@ -104,13 +105,13 @@ namespace StockSharp.Hydra.InteractiveBrokers
 			get { return _supportedCandleSeries; }
 		}
 
-		protected override MarketDataConnector<IBTrader> CreateTrader(HydraTaskSettings settings)
+		protected override MarketDataConnector<IBTrader> CreateConnector(HydraTaskSettings settings)
 		{
 			_settings = new IBSettings(settings);
 
 			if (settings.IsDefault)
 			{
-				_settings.Address = InteractiveBrokersSessionHolder.DefaultAddress;
+				_settings.Address = InteractiveBrokersMessageAdapter.DefaultAddress;
 				_settings.IsDownloadNews = true;
 				_settings.ClientId = 0;
 				_settings.ServerLogLevel = ServerLogLevels.System;

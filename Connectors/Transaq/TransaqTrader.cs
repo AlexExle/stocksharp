@@ -22,24 +22,16 @@ namespace StockSharp.Transaq
 	public class TransaqTrader : Connector, IExternalCandleSource
 	{
 		private readonly SynchronizedDictionary<long, CandleSeries> _candleSeries = new SynchronizedDictionary<long, CandleSeries>();
-		private readonly TransaqMessageAdapter _marketDataAdapter;
+		private readonly TransaqMessageAdapter _adapter;
 
 		/// <summary>
 		/// Создать <see cref="TransaqTrader"/>.
 		/// </summary>
 		public TransaqTrader()
 		{
-			base.SessionHolder = new TransaqSessionHolder(TransactionIdGenerator);
+			_adapter = new TransaqMessageAdapter(TransactionIdGenerator);
 
-			_marketDataAdapter = MarketDataAdapter.To<TransaqMessageAdapter>();
-
-			ApplyMessageProcessor(MessageDirections.In, true, true);
-			ApplyMessageProcessor(MessageDirections.Out, true, true);
-		}
-
-		private new TransaqSessionHolder SessionHolder
-		{
-			get { return (TransaqSessionHolder)base.SessionHolder; }
+			Adapter.InnerAdapters.Add(_adapter.ToChannel(this));
 		}
 
 		/// <summary>
@@ -47,8 +39,8 @@ namespace StockSharp.Transaq
 		/// </summary>
 		public string Password
 		{
-			get { return SessionHolder.Password.To<string>(); }
-			set { SessionHolder.Password = value.To<SecureString>(); }
+			get { return _adapter.Password.To<string>(); }
+			set { _adapter.Password = value.To<SecureString>(); }
 		}
 
 		/// <summary>
@@ -56,8 +48,8 @@ namespace StockSharp.Transaq
 		/// </summary>
 		public string Login
 		{
-			get { return SessionHolder.Login; }
-			set { SessionHolder.Login = value; }
+			get { return _adapter.Login; }
+			set { _adapter.Login = value; }
 		}
 
 		/// <summary>
@@ -65,8 +57,8 @@ namespace StockSharp.Transaq
 		/// </summary>
 		public EndPoint Address
 		{
-			get { return SessionHolder.Address; }
-			set { SessionHolder.Address = value; }
+			get { return _adapter.Address; }
+			set { _adapter.Address = value; }
 		}
 
 		/// <summary>
@@ -74,8 +66,8 @@ namespace StockSharp.Transaq
 		/// </summary>
 		public Proxy Proxy
 		{
-			get { return SessionHolder.Proxy; }
-			set { SessionHolder.Proxy = value; }
+			get { return _adapter.Proxy; }
+			set { _adapter.Proxy = value; }
 		}
 
 		/// <summary>
@@ -83,8 +75,8 @@ namespace StockSharp.Transaq
 		/// </summary>
 		public ApiLogLevels ApiLogLevel
 		{
-			get { return SessionHolder.ApiLogLevel; }
-			set { SessionHolder.ApiLogLevel = value; }
+			get { return _adapter.ApiLogLevel; }
+			set { _adapter.ApiLogLevel = value; }
 		}
 
 		/// <summary>
@@ -92,8 +84,8 @@ namespace StockSharp.Transaq
 		/// </summary>
 		public string DllPath
 		{
-			get { return SessionHolder.DllPath; }
-			set { SessionHolder.DllPath = value; }
+			get { return _adapter.DllPath; }
+			set { _adapter.DllPath = value; }
 		}
 
 		/// <summary>
@@ -101,8 +93,8 @@ namespace StockSharp.Transaq
 		/// </summary>
 		public bool MicexRegisters
 		{
-			get { return SessionHolder.MicexRegisters; }
-			set { SessionHolder.MicexRegisters = value; }
+			get { return _adapter.MicexRegisters; }
+			set { _adapter.MicexRegisters = value; }
 		}
 
 		/// <summary>
@@ -110,8 +102,8 @@ namespace StockSharp.Transaq
 		/// </summary>
 		public bool IsHFT
 		{
-			get { return SessionHolder.IsHFT; }
-			set { SessionHolder.IsHFT = value; }
+			get { return _adapter.IsHFT; }
+			set { _adapter.IsHFT = value; }
 		}
 
 		/// <summary>
@@ -119,8 +111,8 @@ namespace StockSharp.Transaq
 		/// </summary>
 		public TimeSpan? MarketDataInterval
 		{
-			get { return SessionHolder.MarketDataInterval; }
-			set { SessionHolder.MarketDataInterval = value; }
+			get { return _adapter.MarketDataInterval; }
+			set { _adapter.MarketDataInterval = value; }
 		}
 
 		/// <summary>
@@ -128,7 +120,7 @@ namespace StockSharp.Transaq
 		/// </summary>
 		public string ConnectorVersion
 		{
-			get { return SessionHolder.ConnectorVersion; }
+			get { return _adapter.ConnectorVersion; }
 		}
 
 		/// <summary>
@@ -136,7 +128,7 @@ namespace StockSharp.Transaq
 		/// </summary>
 		public int CurrentServer
 		{
-			get { return SessionHolder.CurrentServer; }
+			get { return _adapter.CurrentServer; }
 		}
 
 		/// <summary>
@@ -144,75 +136,24 @@ namespace StockSharp.Transaq
 		/// </summary>
 		public TimeSpan? ServerTimeDiff
 		{
-			get { return SessionHolder.ServerTimeDiff; }
+			get { return _adapter.ServerTimeDiff; }
 		}
 
 		/// <summary>
-		/// Сменить пароль для подключения к серверу. Максимальная длинна 19 символов.
+		/// Список доступных периодов свечей.
 		/// </summary>
-		/// <param name="currPass">Текущий пароль.</param>
-		/// <param name="newPass">Новый пароль.</param>
-		/// <param name="handler">Обработчик результата.</param>
-		public void ChangePassword(string currPass, string newPass, Action<bool, string> handler)
+		public IEnumerable<TimeSpan> CandleTimeFrames
 		{
-			if (handler == null)
-				throw new ArgumentNullException("handler");
-
-			// TODO
-			//var command = new ChangePassMessage
-			//{
-			//	NewPass = newPass,
-			//	OldPass = currPass
-			//};
-
-			//SendCommand(command, result =>
-			//{
-			//	var text = result.Text;
-
-			//	if (result.IsSuccess)
-			//		this.AddInfoLog(text);
-			//	else
-			//		RaiseProcessDataError(new InvalidOperationException(text));
-
-			//	handler(result.IsSuccess, text);
-			//});
-		}
-
-		#region News
-
-		/// <summary>
-		/// Начать получать новости.
-		/// </summary>
-		protected override void OnRegisterNews()
-		{
-			GetNewsHeader(TransaqMessageAdapter.MaxNewsHeaderCount);
+			get { return _adapter.CandleTimeFrames; }
 		}
 
 		/// <summary>
-		/// Запросить заголовки старых новостей.
+		/// Событие инициализации поля <see cref="CandleTimeFrames"/>.
 		/// </summary>
-		/// <param name="count">Количество заголовков новостей.</param>
-		private void GetNewsHeader(int count)
+		public event Action CandleTimeFramesInitialized
 		{
-			MarketDataAdapter.SendInMessage(new MarketDataMessage
-			{
-				TransactionId = TransactionIdGenerator.GetNextId(),
-				DataType = MarketDataTypes.News,
-				Count = count,
-				IsSubscribe = true
-			});
-		}
-
-		#endregion
-
-		/// <summary>
-		/// Вызвать событие <see cref="NewCandles"/>
-		/// </summary>
-		/// <param name="candleSeries">Серия свечек.</param>
-		/// <param name="candles">Свечи.</param>
-		protected virtual void RaiseNewCandles(CandleSeries candleSeries, IEnumerable<TimeFrameCandle> candles)
-		{
-			NewCandles.SafeInvoke(candleSeries, candles);
+			add { _adapter.CandleTimeFramesInitialized += value; }
+			remove { _adapter.CandleTimeFramesInitialized -= value; }
 		}
 
 		/// <summary>
@@ -222,7 +163,7 @@ namespace StockSharp.Transaq
 		/// <returns>Временные диапазоны.</returns>
 		IEnumerable<Range<DateTimeOffset>> IExternalCandleSource.GetSupportedRanges(CandleSeries series)
 		{
-			if (series.CandleType == typeof(TimeFrameCandle) && series.Arg is TimeSpan && _marketDataAdapter.CandleTimeFrames.Contains((TimeSpan)series.Arg))
+			if (series.CandleType == typeof(TimeFrameCandle) && series.Arg is TimeSpan && _adapter.CandleTimeFrames.Contains((TimeSpan)series.Arg))
 			{
 				yield return new Range<DateTimeOffset>(DateTimeOffset.MinValue, CurrentTime);
 			}
@@ -246,10 +187,7 @@ namespace StockSharp.Transaq
 
 			if (_candleSeries.Values.Contains(series))
 			{
-				MarketDataAdapter.SendOutMessage(new ErrorMessage
-				{
-					Error = new InvalidOperationException(LocalizedStrings.Str3568Params.Put(series))
-				});
+				SendOutError(new InvalidOperationException(LocalizedStrings.Str3568Params.Put(series)));
 				return;
 			}
 
@@ -257,7 +195,7 @@ namespace StockSharp.Transaq
 
 			_candleSeries[transactionId] = series;
 
-			MarketDataAdapter.SendInMessage(new MarketDataMessage
+			SendInMessage(new MarketDataMessage
 			{
 				From = from,
 				To = to,
@@ -282,15 +220,14 @@ namespace StockSharp.Transaq
 		/// Обработать сообщение, содержащее рыночные данные.
 		/// </summary>
 		/// <param name="message">Сообщение, содержащее рыночные данные.</param>
-		/// <param name="adapterType">Тип адаптера, от которого пришло сообщение.</param>
 		/// <param name="direction">Направление сообщения.</param>
-		protected override void OnProcessMessage(Message message, MessageAdapterTypes adapterType, MessageDirections direction)
+		protected override void OnProcessMessage(Message message, MessageDirections direction)
 		{
 			var candleMsg = message as CandleMessage;
 
 			if (candleMsg == null)
 			{
-				base.OnProcessMessage(message, adapterType, direction);
+				base.OnProcessMessage(message, direction);
 				return;
 			}
 
@@ -306,9 +243,8 @@ namespace StockSharp.Transaq
 		/// <summary>
 		/// Сменить пароль.
 		/// </summary>
-		/// <param name="adapterType">Тип адаптера, в который необходимо отправить сообщение о смене пароля.</param>
 		/// <param name="newPassword">Новый пароль.</param>
-		public void ChangePassword(MessageAdapterTypes adapterType, string newPassword)
+		public void ChangePassword(string newPassword)
 		{
 			var msg = new ChangePasswordMessage
 			{
@@ -316,17 +252,7 @@ namespace StockSharp.Transaq
 				TransactionId = TransactionIdGenerator.GetNextId()
 			};
 
-			switch (adapterType)
-			{
-				case MessageAdapterTypes.Transaction:
-					TransactionAdapter.SendInMessage(msg);
-					break;
-				case MessageAdapterTypes.MarketData:
-					MarketDataAdapter.SendInMessage(msg);
-					break;
-				default:
-					throw new ArgumentOutOfRangeException("adapterType");
-			}
+			SendInMessage(msg);
 		}
 	}
 }

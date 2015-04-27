@@ -24,6 +24,7 @@ namespace StockSharp.Hydra.Rithmic
 		private const string _sourceName = "Rithmic";
 
 		[TaskSettingsDisplayName(_sourceName)]
+		[CategoryOrder(_sourceName, 0)]
 		private sealed class RithmicSettings : ConnectorHydraTaskSettings
 		{
 			public RithmicSettings(HydraTaskSettings settings)
@@ -80,8 +81,8 @@ namespace StockSharp.Hydra.Rithmic
 			[PropertyOrder(3)]
 			public RithmicServers Server
 			{
-				get { return ExtensionInfo["RithmicServers"].To<RithmicServers>(); }
-				set { ExtensionInfo["AdminConnectionPoint"] = value.To<string>(); }
+				get { return ExtensionInfo["Server"].To<RithmicServers>(); }
+				set { ExtensionInfo["Server"] = value.To<string>(); }
 			}
 
 			/// <summary>
@@ -101,7 +102,7 @@ namespace StockSharp.Hydra.Rithmic
 
 		public RithmicTask()
 		{
-			_supportedCandleSeries = RithmicSessionHolder.TimeFrames.Select(tf => new CandleSeries
+			_supportedCandleSeries = RithmicMessageAdapter.TimeFrames.Select(tf => new CandleSeries
 			{
 				CandleType = typeof(TimeFrameCandle),
 				Arg = tf
@@ -132,7 +133,7 @@ namespace StockSharp.Hydra.Rithmic
 			get { return _supportedCandleSeries; }
 		}
 
-		protected override MarketDataConnector<RithmicTrader> CreateTrader(HydraTaskSettings settings)
+		protected override MarketDataConnector<RithmicTrader> CreateConnector(HydraTaskSettings settings)
 		{
 			_settings = new RithmicSettings(settings);
 

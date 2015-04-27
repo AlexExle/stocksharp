@@ -9,6 +9,7 @@ namespace StockSharp.Algo
 	using Ecng.Net;
 	using Ecng.Common;
 	using Ecng.Collections;
+	using Ecng.ComponentModel;
 
 	using MoreLinq;
 
@@ -353,7 +354,7 @@ namespace StockSharp.Algo
 		{
 			security.CheckPriceStep();
 
-			return price.Round(security.PriceStep, security.Decimals,
+			return price.Round(security.PriceStep ?? 1m, security.Decimals ?? 0,
 				rule == ShrinkRules.Auto
 					? (MidpointRounding?)null
 					: (rule == ShrinkRules.Less ? MidpointRounding.AwayFromZero : MidpointRounding.ToEven)).RemoveTrailingZeros();
@@ -384,7 +385,7 @@ namespace StockSharp.Algo
 			if (message == null)
 				throw new ArgumentNullException("message");
 
-			return message.Side == Sides.Buy ? message.Volume : -message.Volume;
+			return (message.Side == Sides.Buy ? message.Volume : -message.Volume) ?? 0;
 		}
 
 		/// <summary>
@@ -438,7 +439,7 @@ namespace StockSharp.Algo
 			if (position == null)
 				throw new ArgumentNullException("position");
 
-			return (position.CurrentValue / position.Security.VolumeStep).Abs();
+			return (position.CurrentValue / position.Security.VolumeStep ?? 1m).Abs();
 		}
 
 		/// <summary>
@@ -539,10 +540,7 @@ namespace StockSharp.Algo
 		/// <returns>Прибыль-убыток.</returns>
 		public static decimal GetPnL(this ExecutionMessage trade, decimal currentPrice)
 		{
-			if (trade == null)
-				throw new ArgumentNullException("trade");
-
-			return GetPnL(trade.TradePrice, trade.Volume, trade.Side, currentPrice);
+			return GetPnL(trade.GetTradePrice(), trade.GetVolume(), trade.Side, currentPrice);
 		}
 
 		internal static decimal GetPnL(decimal price, decimal volume, Sides side, decimal marketPrice)
@@ -576,7 +574,7 @@ namespace StockSharp.Algo
 
 			var security = position.Security;
 
-			return currentPrice * position.CurrentValue * security.StepPrice / security.PriceStep;
+			return currentPrice * position.CurrentValue * security.StepPrice / security.PriceStep ?? 1;
 		}
 
 		/// <summary>
@@ -767,7 +765,7 @@ namespace StockSharp.Algo
 			if (depth == null)
 				throw new ArgumentNullException("depth");
 
-			return depth.Sparse(depth.Security.PriceStep);
+			return depth.Sparse(depth.Security.PriceStep ?? 1m);
 		}
 
 		/// <summary>
@@ -872,7 +870,7 @@ namespace StockSharp.Algo
 			var list = quotes.OrderBy(q => q.Price).ToList();
 
 			if (list.Count < 2)
-				return ArrayHelper<Quote>.EmptyArray;
+				return ArrayHelper.Empty<Quote>();
 
 			var firstQuote = list[0];
 
@@ -965,19 +963,21 @@ namespace StockSharp.Algo
 
 			foreach (var trade in trades)
 			{
-				minTradePrice = minTradePrice.Min(trade.TradePrice);
-				maxTradePrice = maxTradePrice.Max(trade.TradePrice);
+				var price = trade.GetTradePrice();
 
-				var quote = depth.GetQuote(trade.TradePrice);
+				minTradePrice = minTradePrice.Min(price);
+				maxTradePrice = maxTradePrice.Max(price);
+
+				var quote = depth.GetQuote(price);
 
 				if (null == quote)
 					continue;
 
 				decimal vol;
-				if (!changedVolume.TryGetValue(trade.TradePrice, out vol))
+				if (!changedVolume.TryGetValue(price, out vol))
 					vol = quote.Volume;
 
-				vol -= trade.Volume;
+				vol -= trade.GetVolume();
 				changedVolume[quote.Price] = vol;
 			}
 
@@ -1443,7 +1443,7 @@ namespace StockSharp.Algo
 			if (order.OrderState != OrderStates.Done)	// для ускорения в эмуляторе
 				return false;
 
-			return order.OrderState == OrderStates.Done && order.Balance != 0;
+			return order.OrderState == OrderStates.Done && order.Balance > 0;
 		}
 
 		/// <summary>
@@ -1492,7 +1492,15 @@ namespace StockSharp.Algo
 		/// <returns>Сделки.</returns>
 		public static IEnumerable<MyTrade> GetTrades(this Order order)
 		{
-			return order.CheckTrader().MyTrades.Filter(order);
+			if (order == null)
+				throw new ArgumentNullException("order");
+
+			var connector = order.Connector;
+
+			if (connector == null)
+				throw new ArgumentException(LocalizedStrings.Str904Params.Put(order.TransactionId), "order");
+
+			return connector.MyTrades.Filter(order);
 		}
 
 		/// <summary>
@@ -1985,27 +1993,20 @@ namespace StockSharp.Algo
 				                   ? string.Empty
 				                   : connector.SecurityIdGenerator.GenerateId(criteria.SecurityId.SecurityCode, criteria.SecurityId.BoardCode);
 
-			return new Security
+			var security = new Security
 			{
 				Id = stocksharpId,
 				Name = criteria.Name,
 				Code = criteria.SecurityId.SecurityCode,
 				Type = criteria.SecurityType,
 				ExpiryDate = criteria.ExpiryDate,
-				ExternalId = new SecurityExternalId
-				{
-					Bloomberg = criteria.SecurityId.Bloomberg,
-					Cusip = criteria.SecurityId.Cusip,
-					IQFeed = criteria.SecurityId.IQFeed,
-					Isin = criteria.SecurityId.Isin,
-					Ric = criteria.SecurityId.Ric,
-					Sedol = criteria.SecurityId.Sedol,
-				},
+				ExternalId = criteria.SecurityId.ToExternalId(),
 				Board = criteria.SecurityId.BoardCode.IsEmpty() ? null : ExchangeBoard.GetOrCreateBoard(criteria.SecurityId.BoardCode),
 				ShortName = criteria.ShortName,
+				Decimals = criteria.Decimals,
+				PriceStep = criteria.PriceStep,
 				VolumeStep = criteria.VolumeStep,
 				Multiplier = criteria.Multiplier,
-				PriceStep = criteria.PriceStep,
 				OptionType = criteria.OptionType,
 				Strike = criteria.Strike,
 				BinaryOptionType = criteria.BinaryOptionType,
@@ -2015,6 +2016,8 @@ namespace StockSharp.Algo
 					? null
 					: connector.SecurityIdGenerator.GenerateId(criteria.UnderlyingSecurityCode, criteria.SecurityId.BoardCode),
 			};
+
+			return security;
 		}
 
 		/// <summary>
@@ -2078,7 +2081,7 @@ namespace StockSharp.Algo
 				if (!underSecId.IsEmpty() && s.UnderlyingSecurityId != underSecId)
 					return false;
 
-				if (criteria.Strike != 0 && s.Strike != criteria.Strike)
+				if (criteria.Strike != null && s.Strike != criteria.Strike)
 					return false;
 
 				if (criteria.OptionType != null && s.OptionType != criteria.OptionType)
@@ -2876,6 +2879,9 @@ namespace StockSharp.Algo
 						case Level1Fields.PriceStep:
 							security.PriceStep = (decimal)value;
 							break;
+						case Level1Fields.Decimals:
+							security.Decimals = (int)value;
+							break;
 						case Level1Fields.VolumeStep:
 							security.VolumeStep = (decimal)value;
 							break;
@@ -3238,6 +3244,7 @@ namespace StockSharp.Algo
 			switch (name)
 			{
 				case "SUR":
+				case "RUR":
 					return CurrencyTypes.RUB;
 				default:
 					return name.To<CurrencyTypes>();
@@ -3259,27 +3266,27 @@ namespace StockSharp.Algo
 		}
 
 		/// <summary>
-		/// Получить описание инструмента по классу из <see cref="IMessageSessionHolder.SecurityClassInfo"/>.
+		/// Получить описание инструмента по классу.
 		/// </summary>
-		/// <param name="sessionHolder">Контейнер для сессии.</param>
+		/// <param name="securityClassInfo">Описание классов инструментов, в зависимости от которых будут проставляться параметры в <see cref="SecurityMessage.SecurityType"/> и <see cref="SecurityId.BoardCode"/>.</param>
 		/// <param name="secClass">Класс инструмента.</param>
-		/// <returns>Описание инструмента. Если класс не найден в <see cref="IMessageSessionHolder.SecurityClassInfo"/>,
+		/// <returns>Описание инструмента. Если класс не найден,
 		/// то будет возвращено значение <see langword="null"/> в качестве типа инструмента.</returns>
-		public static Tuple<SecurityTypes?, string> GetSecurityClassInfo(this IMessageSessionHolder sessionHolder, string secClass)
+		public static Tuple<SecurityTypes?, string> GetSecurityClassInfo(this IDictionary<string, RefPair<SecurityTypes, string>> securityClassInfo, string secClass)
 		{
-			var pair = sessionHolder.SecurityClassInfo.TryGetValue(secClass);
+			var pair = securityClassInfo.TryGetValue(secClass);
 			return Tuple.Create(pair == null ? (SecurityTypes?)null : pair.First, pair == null ? secClass : pair.Second);
 		}
 
 		/// <summary>
 		/// Получить код площадки для класса инструмента.
 		/// </summary>
-		/// <param name="sessionHolder">Контейнер для сессии.</param>
+		/// <param name="adapter">Адаптер к торговой системе.</param>
 		/// <param name="secClass">Класс инструмента.</param>
 		/// <returns>Код площадки.</returns>
-		public static string GetBoardCode(this IMessageSessionHolder sessionHolder, string secClass)
+		public static string GetBoardCode(this IMessageAdapter adapter, string secClass)
 		{
-			return sessionHolder.GetSecurityClassInfo(secClass).Item2;
+			return adapter.SecurityClassInfo.GetSecurityClassInfo(secClass).Item2;
 		}
 
 		/// <summary>
@@ -3472,6 +3479,19 @@ namespace StockSharp.Algo
 				return managedAdapter.InnerAdapter.To<T>();
 
 			throw new InvalidCastException(LocalizedStrings.Str3843.Put(adapter.GetType(), typeof(T)));
+		}
+
+		/// <summary>
+		/// Преобразовать адаптер в <see cref="ChannelMessageAdapter"/>.
+		/// </summary>
+		/// <param name="adapter">Адаптер.</param>
+		/// <param name="connector">Подключение. Используется для определения имени канала.</param>
+		/// <param name="name">Имя канала.</param>
+		/// <returns>Адаптер сообщений, пересылающий сообщения через транспортный канал <see cref="IMessageChannel"/>.</returns>
+		public static ChannelMessageAdapter ToChannel(this IMessageAdapter adapter, Connector connector, string name = null)
+		{
+			name = name ?? connector.GetType().GetDisplayName();
+			return new ChannelMessageAdapter(adapter, new InMemoryMessageChannel(name, connector.SendOutError), new PassThroughMessageChannel());
 		}
 	}
 }

@@ -29,6 +29,7 @@ namespace StockSharp.Hydra.IQFeed
 		private const string _sourceName = "IQFeed";
 
 		[TaskSettingsDisplayName(_sourceName)]
+		[CategoryOrder(_sourceName, 0)]
 		private sealed class IQFeedSettings : ConnectorHydraTaskSettings
 		{
 			private const string _category = _sourceName;
@@ -168,7 +169,7 @@ namespace StockSharp.Hydra.IQFeed
 
 		public IQFeedTask()
 		{
-			_supportedCandleSeries = IQFeedSessionHolder.TimeFrames.Select(tf => new CandleSeries
+			_supportedCandleSeries = IQFeedMarketDataMessageAdapter.TimeFrames.Select(tf => new CandleSeries
 			{
 				CandleType = typeof(TimeFrameCandle),
 				Arg = tf
@@ -204,7 +205,7 @@ namespace StockSharp.Hydra.IQFeed
 			get { return _settings; }
 		}
 
-		protected override MarketDataConnector<IQFeedTrader> CreateTrader(HydraTaskSettings settings)
+		protected override MarketDataConnector<IQFeedTrader> CreateConnector(HydraTaskSettings settings)
 		{
 			_settings = new IQFeedSettings(settings);
 
@@ -291,7 +292,7 @@ namespace StockSharp.Hydra.IQFeed
 						this.AddInfoLog(LocalizedStrings.Str2294Params, date, security.Security.Id);
 
 						bool isSuccess;
-						var trades = Connector.Connector.GetHitoricalLevel1(security.Security.ToSecurityId(), _settings.StartFrom, _settings.StartFrom.EndOfDay(), out isSuccess);
+						var trades = Connector.Connector.GetHistoricalLevel1(security.Security.ToSecurityId(), _settings.StartFrom, _settings.StartFrom.EndOfDay(), out isSuccess);
 
 						if (isSuccess)
 						{
@@ -334,7 +335,7 @@ namespace StockSharp.Hydra.IQFeed
 						this.AddInfoLog(LocalizedStrings.Str2298Params, series, date, security.Security.Id);
 
 						bool isSuccess;
-						var candles = Connector.Connector.GetHitoricalCandles(security.Security, series.CandleType, series.Arg, date, date.EndOfDay(), out isSuccess);
+						var candles = Connector.Connector.GetHistoricalCandles(security.Security, series.CandleType, series.Arg, date, date.EndOfDay(), out isSuccess);
 
 						if (isSuccess)
 						{

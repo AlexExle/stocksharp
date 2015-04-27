@@ -34,26 +34,26 @@
 			};
 			yield return new ColumnDescription("ServerTime") { DbType = typeof(DateTimeOffset) };
 			yield return new ColumnDescription("LocalTime") { DbType = typeof(DateTime) };
-			yield return new ColumnDescription("OrderPrice") { DbType = typeof(decimal), ValueRestriction = new DecimalRestriction { Scale = security.PriceStep.GetCachedDecimals() } };
-			yield return new ColumnDescription("Volume") { DbType = typeof(decimal), ValueRestriction = new DecimalRestriction { Scale = security.VolumeStep.GetCachedDecimals() } };
+			yield return new ColumnDescription("OrderPrice") { DbType = typeof(decimal), ValueRestriction = new DecimalRestriction { Scale = security.PriceStep == null ? 1 : security.PriceStep.Value.GetCachedDecimals() } };
+			yield return new ColumnDescription("Volume") { DbType = typeof(decimal), ValueRestriction = new DecimalRestriction { Scale = security.VolumeStep == null ? 1 : security.VolumeStep.Value.GetCachedDecimals() } };
 			yield return new ColumnDescription("Side") { DbType = typeof(int) };
 			yield return new ColumnDescription("Status") { DbType = typeof(int?) };
 			yield return new ColumnDescription("State") { DbType = typeof(int?) };
-			yield return new ColumnDescription("TimeInForce") { DbType = typeof(int) };
+			yield return new ColumnDescription("TimeInForce") { DbType = typeof(int?) };
 			yield return new ColumnDescription("TradeId")
 			{
 				DbType = typeof(string),
 				ValueRestriction = new StringRestriction(32)
 			};
-			yield return new ColumnDescription("TradePrice") { DbType = typeof(decimal?), ValueRestriction = new DecimalRestriction { Scale = security.PriceStep.GetCachedDecimals() } };
-			yield return new ColumnDescription("OpenInterest") { DbType = typeof(decimal?), ValueRestriction = new DecimalRestriction { Scale = security.VolumeStep.GetCachedDecimals() } };
+			yield return new ColumnDescription("TradePrice") { DbType = typeof(decimal?), ValueRestriction = new DecimalRestriction { Scale = security.PriceStep == null ? 1 : security.PriceStep.Value.GetCachedDecimals() } };
+			yield return new ColumnDescription("OpenInterest") { DbType = typeof(decimal?), ValueRestriction = new DecimalRestriction { Scale = security.VolumeStep == null ? 1 : security.VolumeStep.Value.GetCachedDecimals() } };
 		}
 
 		protected override IDictionary<string, object> ConvertToParameters(ExecutionMessage value)
 		{
 			var result = new Dictionary<string, object>
 			{
-				{ "OrderId", value.OrderId == 0 ? value.OrderStringId : value.OrderId.To<string>() },
+				{ "OrderId", value.OrderId == null ? value.OrderStringId : value.OrderId.To<string>() },
 				{ "SecurityCode", value.SecurityId.SecurityCode },
 				{ "BoardCode", value.SecurityId.BoardCode },
 				{ "ServerTime", value.ServerTime },
@@ -63,9 +63,9 @@
 				{ "Side", (int)value.Side },
 				{ "Status", (int?)value.OrderStatus },
 				{ "State", (int?)value.OrderState },
-				{ "TimeInForce", (int)value.TimeInForce },
-				{ "TradeId", value.TradeId == 0 ? value.TradeStringId : value.TradeId.To<string>() },
-				{ "TradePrice", value.TradePrice == 0 ? (decimal?)null : value.TradePrice },
+				{ "TimeInForce", (int?)value.TimeInForce },
+				{ "TradeId", value.TradeId == null ? value.TradeStringId : value.TradeId.To<string>() },
+				{ "TradePrice", value.TradePrice },
 				{ "OpenInterest", value.OpenInterest },
 			};
 			return result;

@@ -35,18 +35,13 @@ namespace StockSharp.Hydra.Panes
 
 		public override string Title
 		{
-			get { return LocalizedStrings.Str2934 + SelectedSecurity; }
+			get { return LocalizedStrings.Str2934 + " " + SelectedSecurity; }
 		}
 
 		public override Security SelectedSecurity
 		{
 			get { return SelectSecurityBtn.SelectedSecurity; }
 			set { SelectSecurityBtn.SelectedSecurity = value; }
-		}
-
-		public override bool InProcess
-		{
-			get { return Progress.IsStarted; }
 		}
 
 		private IEnumerableEx<Level1ChangeMessage> GetMessages()

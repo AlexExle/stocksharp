@@ -28,9 +28,10 @@ namespace SampleHistoryTesting
 
 	public partial class MainWindow
 	{
-		// вспомогательный класс для настроек тестирования
-		internal sealed class EmulationInfo
+		// emulation settings
+		private sealed class EmulationInfo
 		{
+			public bool UseTicks { get; set; }
 			public bool UseMarketDepth { get; set; }
 			public TimeSpan? UseCandleTimeFrame { get; set; }
 			public Color CurveColor { get; set; }
@@ -56,7 +57,7 @@ namespace SampleHistoryTesting
 
 			_bufferedChart = new BufferedChart(Chart);
 
-			HistoryPath.Text = Path.GetFullPath(@"..\..\..\HistoryData\");
+			HistoryPath.Text = @"..\..\..\HistoryData\".ToFullPath();
 
 			From.Value = new DateTime(2012, 10, 1);
 			To.Value = new DateTime(2012, 10, 25);
@@ -101,49 +102,49 @@ namespace SampleHistoryTesting
 
 			var timeFrame = TimeSpan.FromMinutes(5);
 
-			// создаем настройки для тестирования
+			// create backtesting modes
 			var settings = new[]
 			{
 				Tuple.Create(
 					TicksCheckBox, 
 					TicksTestingProcess, 
 					TicksParameterGrid,
-					// тест только на тиках
-					new EmulationInfo {CurveColor = Colors.DarkGreen, StrategyName = LocalizedStrings.Str3017}),
+					// ticks
+					new EmulationInfo {UseTicks = true, CurveColor = Colors.DarkGreen, StrategyName = LocalizedStrings.Str3017}),
 
 				Tuple.Create(
 					TicksAndDepthsCheckBox, 
 					TicksAndDepthsTestingProcess, 
 					TicksAndDepthsParameterGrid,
-					// тест на тиках + стаканы
-					new EmulationInfo {UseMarketDepth = true, CurveColor = Colors.Red, StrategyName = LocalizedStrings.Str3018}),
+					// ticks + order book
+					new EmulationInfo {UseTicks = true, UseMarketDepth = true, CurveColor = Colors.Red, StrategyName = LocalizedStrings.Str3018}),
 
 				Tuple.Create(
 					CandlesCheckBox, 
 					CandlesTestingProcess, 
 					CandlesParameterGrid,
-					// тест на свечах
+					// candles
 					new EmulationInfo {UseCandleTimeFrame = timeFrame, CurveColor = Colors.DarkBlue, StrategyName = LocalizedStrings.Str3019}),
 				
 				Tuple.Create(
 					CandlesAndDepthsCheckBox, 
 					CandlesAndDepthsTestingProcess, 
 					CandlesAndDepthsParameterGrid,
-					// тест на свечах + стаканы
+					// candles + orderbook
 					new EmulationInfo {UseMarketDepth = true, UseCandleTimeFrame = timeFrame, CurveColor = Colors.Cyan, StrategyName = LocalizedStrings.Str3020}),
 			
 				Tuple.Create(
 					OrderLogCheckBox, 
 					OrderLogTestingProcess, 
 					OrderLogParameterGrid,
-					// тест на логе заявок
+					// order log
 					new EmulationInfo {UseOrderLog = true, CurveColor = Colors.CornflowerBlue, StrategyName = LocalizedStrings.Str3021})
 			};
 
-			// хранилище, через которое будет производиться доступ к тиковой и котировочной базе
+			// storage to historical data
 			var storageRegistry = new StorageRegistry
 			{
-				// изменяем путь, используемый по умолчанию
+				// set historical path
 				DefaultDrive = new LocalMarketDataDrive(HistoryPath.Text)
 			};
 
@@ -154,18 +155,17 @@ namespace SampleHistoryTesting
 			if (OrderLogCheckBox.IsChecked == true)
 				startTime = startTime.Subtract(TimeSpan.FromDays(1)).AddHours(18).AddMinutes(45).AddTicks(1);
 
-			// задаем шаг ProgressBar
+			// ProgressBar refresh step
 			var progressStep = ((stopTime - startTime).Ticks / 100).To<TimeSpan>();
 
-			// в реальности период может быть другим, и это зависит от объема данных,
-			// хранящихся по пути HistoryPath, 
+			// set ProgressBar bounds
 			TicksTestingProcess.Maximum = TicksAndDepthsTestingProcess.Maximum = CandlesTestingProcess.Maximum = 100;
 			TicksTestingProcess.Value = TicksAndDepthsTestingProcess.Value = CandlesTestingProcess.Value = 0;
 
 			var logManager = new LogManager();
 			var fileLogListener = new FileLogListener("sample.log");
 			logManager.Listeners.Add(fileLogListener);
-			//logManager.Listeners.Add(new DebugLogListener());	// чтобы смотреть логи в отладчике - работает медленно.
+			//logManager.Listeners.Add(new DebugLogListener());	// for track logs in output window in Vusial Studio (poor performance).
 
 			var generateDepths = GenDepthsCheckBox.IsChecked == true;
 			var maxDepth = MaxDepth.Text.To<int>();
@@ -183,10 +183,10 @@ namespace SampleHistoryTesting
 				var statistic = set.Item3;
 				var emulationInfo = set.Item4;
 
-				// создаем тестовый инструмент, на котором будет производится тестирование
+				// create test security
 				var security = new Security
 				{
-					Id = SecId.Text, // по идентификатору инструмента будет искаться папка с историческими маркет данными
+					Id = SecId.Text, // sec id has the same name as folder with historical data
 					Code = secCode,
 					Board = board,
 				};
@@ -203,15 +203,14 @@ namespace SampleHistoryTesting
 				.TryAdd(Level1Fields.MarginBuy, 10000m)
 				.TryAdd(Level1Fields.MarginSell, 10000m);
 
-				// тестовый портфель
+				// test portfolio
 				var portfolio = new Portfolio
 				{
 					Name = "test account",
 					BeginValue = 1000000,
 				};
 
-				// создаем подключение для эмуляции
-				// инициализируем настройки (инструмент в истории обновляется раз в секунду)
+				// create backtesting connector
 				var connector = new HistoryEmulationConnector(
 					new[] { security },
 					new[] { portfolio })
@@ -222,12 +221,12 @@ namespace SampleHistoryTesting
 					{
 						Settings =
 						{
-							// использовать свечи
+							// set time frame is backtesting on candles
 							UseCandlesTimeFrame =  emulationInfo.UseCandleTimeFrame,
 
-							// сведение сделки в эмуляторе если цена коснулась нашей лимитной заявки. 
-							// Если выключено - требуется "прохождение цены сквозь уровень"
-							// (более "суровый" режим тестирования.)
+							// match order if historical price touched our limit order price. 
+							// It is terned off, and price should go through limit order price level
+							// (more "severe" test mode)
 							MatchOnTouch = false,
 						}
 					},
@@ -237,7 +236,10 @@ namespace SampleHistoryTesting
 					CreateTradesFromOrdersLog = emulationInfo.UseOrderLog,
 				};
 
-				connector.MarketDataAdapter.SessionHolder.MarketTimeChangedInterval = timeFrame;
+				connector.StartDate = startTime;
+				connector.StopDate = stopTime;
+
+				connector.MarketTimeChangedInterval = timeFrame;
 
 				((ILogSource)connector).LogLevel = DebugLogCheckBox.IsChecked == true ? LogLevels.Debug : LogLevels.Info;
 
@@ -245,51 +247,52 @@ namespace SampleHistoryTesting
 
 				connector.NewSecurities += securities =>
 				{
-					//подписываемся на получение данных после получения инструмента
-
 					if (securities.All(s => s != security))
 						return;
 
-					// отправляем данные Level1 для инструмента
-					connector.MarketDataAdapter.SendOutMessage(level1Info);
+					// fill level1 values
+					connector.SendOutMessage(level1Info);
 
-					// тест подразумевает наличие стаканов
 					if (emulationInfo.UseMarketDepth)
 					{
 						connector.RegisterMarketDepth(security);
 
 						if (
-								// если выбрана генерация стаканов вместо реальных стаканов
+								// if order book will be generated
 								generateDepths ||
-								// для свечей генерируем стаканы всегда
+								// of backtesting will be on candles
 								emulationInfo.UseCandleTimeFrame != TimeSpan.Zero
 							)
 						{
-							// если история по стаканам отсутствует, но стаканы необходимы для стратегии,
-							// то их можно сгенерировать на основании цен последних сделок или свечек.
+							// if no have order book historical data, but strategy is required,
+							// use generator based on last prices
 							connector.RegisterMarketDepth(new TrendMarketDepthGenerator(connector.GetSecurityId(security))
 							{
-								Interval = TimeSpan.FromSeconds(1), // стакан для инструмента в истории обновляется раз в секунду
+								Interval = TimeSpan.FromSeconds(1), // order book freq refresh is 1 sec
 								MaxAsksDepth = maxDepth,
 								MaxBidsDepth = maxDepth,
 								UseTradeVolume = true,
 								MaxVolume = maxVolume,
-								MinSpreadStepCount = 2,  // минимальный генерируемый спред - 2 минимальных шага цены
-								MaxSpreadStepCount = 5, // не генерировать спрэд между лучшим бид и аск больше чем 5 минимальных шагов цены - нужно чтобы при генерации из свечей не получалось слишком широкого спреда.
-								MaxPriceStepCount = 3	// максимальное количество шагов между ценами,
+								MinSpreadStepCount = 2,	// min spread generation is 2 pips
+								MaxSpreadStepCount = 5,	// max spread generation size (prevent extremely size)
+								MaxPriceStepCount = 3	// pips size,
 							});
 						}
 					}
-					else if (emulationInfo.UseOrderLog)
+
+					if (emulationInfo.UseOrderLog)
 					{
 						connector.RegisterOrderLog(security);
 					}
-				};
 
-				// соединяемся с трейдером и запускаем экспорт,
-				// чтобы инициализировать переданными инструментами и портфелями необходимые свойства EmulationTrader
-				connector.Connect();
-				connector.StartExport();
+					if (emulationInfo.UseTicks)
+					{
+						connector.RegisterTrades(security);
+					}
+
+					// start historical data loading when connection established successfully and all data subscribed
+					connector.Start();
+				};
 
 				var candleManager = new CandleManager(connector);
 				var series = new CandleSeries(typeof(TimeFrameCandle), security, timeFrame);
@@ -311,7 +314,7 @@ namespace SampleHistoryTesting
 				};
 				_bufferedChart.AddElement(_area, _longElem);
 
-				// создаем торговую стратегию, скользящие средние на 80 5-минуток и 10 5-минуток
+				// create strategy based on 80 5-min и 10 5-min
 				var strategy = new SmaStrategy(_bufferedChart, _candlesElem, _tradesElem, _shortMa, _shortElem, _longMa, _longElem, series)
 				{
 					Volume = 1,
@@ -320,20 +323,14 @@ namespace SampleHistoryTesting
 					Connector = connector,
 					LogLevel = DebugLogCheckBox.IsChecked == true ? LogLevels.Debug : LogLevels.Info,
 
-					// по-умолчанию интервал равен 1 минут,
-					// что для истории в диапазон от нескольких месяцев излишне
+					// by default interval is 1 min,
+					// it is excessively for time range with several months
 					UnrealizedPnLInterval = ((stopTime - startTime).Ticks / 1000).To<TimeSpan>()
 				};
 
-				// комиссия в 1 копейку за сделку
-				connector.MarketEmulator.SendInMessage(new CommissionRuleMessage
-				{
-					Rule = new CommissionPerTradeRule { Value = 0.01m }
-				});
-
 				logManager.Sources.Add(strategy);
 
-				// копируем параметры на визуальную панель
+				// fill parameters panel
 				statistic.Parameters.Clear();
 				statistic.Parameters.AddRange(strategy.StatisticManager.Parameters);
 
@@ -370,7 +367,7 @@ namespace SampleHistoryTesting
 
 				var nextTime = startTime + progressStep;
 
-				// и подписываемся на событие изменения времени, чтобы обновить ProgressBar
+				// handle historical time for update ProgressBar
 				connector.MarketTimeChanged += d =>
 				{
 					if (connector.CurrentTime < nextTime && connector.CurrentTime < stopTime)
@@ -398,7 +395,7 @@ namespace SampleHistoryTesting
 							if (connector.IsFinished)
 							{
 								progressBar.Value = progressBar.Maximum;
-								MessageBox.Show(LocalizedStrings.Str3024 + (DateTime.Now - _startEmulationTime));
+								MessageBox.Show(LocalizedStrings.Str3024.Put(DateTime.Now - _startEmulationTime));
 							}
 							else
 								MessageBox.Show(LocalizedStrings.cancelled);
@@ -408,7 +405,7 @@ namespace SampleHistoryTesting
 					{
 						SetIsEnabled(true);
 
-						// запускаем стратегию когда эмулятор запустился
+						// start strategy when emulation started
 						strategy.Start();
 						candleManager.Start(series);
 					}
@@ -432,11 +429,17 @@ namespace SampleHistoryTesting
 
 			_startEmulationTime = DateTime.Now;
 
-			// запускаем эмуляцию
+			// start emulation
 			foreach (var connector in _connectors)
 			{
-				// указываем даты начала и конца тестирования
-				connector.Start(startTime, stopTime);
+				// raise NewSecurities and NewPortfolio for full fill strategy properties
+				connector.Connect();
+
+				// 1 cent commission for trade
+				connector.SendInMessage(new CommissionRuleMessage
+				{
+					Rule = new CommissionPerTradeRule { Value = 0.01m }
+				});
 			}
 
 			TabControl.Items.Cast<TabItem>().First(i => i.Visibility == Visibility.Visible).IsSelected = true;
@@ -458,7 +461,7 @@ namespace SampleHistoryTesting
 		{
 			foreach (var connector in _connectors)
 			{
-				connector.Stop();
+				connector.Disconnect();
 			}
 		}
 

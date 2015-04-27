@@ -149,9 +149,6 @@
     <Reference Include="NCalc">
       <HintPath>..\References\NCalc.dll</HintPath>
     </Reference>
-    <Reference Include="Ookii.Dialogs.Wpf">
-      <HintPath>..\References\Ookii.Dialogs.Wpf.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
@@ -205,6 +202,14 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="ExecutionGrid.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="NewsMessageGrid.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="NewsMessagePanel.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -272,7 +277,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="PortfolioSessionHoldersWindow.xaml">
+    <Page Include="PortfolioMessageAdaptersWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -304,15 +309,15 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="SessionHoldersPanel.xaml">
+    <Page Include="MessageAdaptersPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="SessionHoldersWindow.xaml">
+    <Page Include="MessageAdaptersWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="SessionHolderWindow.xaml">
+    <Page Include="MessageAdapterWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -327,10 +332,6 @@
     <Page Include="Themes\Generic.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
-    </Page>
-    <Page Include="LicensePanel.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="MarketDataGrid.xaml">
       <SubType>Designer</SubType>
@@ -434,7 +435,7 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\StockSharp (GitHub)\StockSharpAssemblyInfo.cs">
+    <Compile Include="..\StockSharpAssemblyInfo.cs">
       <Link>Properties\StockSharpAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="AutoCompletePopUp.xaml.cs">
@@ -472,6 +473,12 @@
       <DependentUpon>ExecutionGrid.xaml</DependentUpon>
     </Compile>
     <Compile Include="MultiIdConverter.cs" />
+    <Compile Include="NewsMessageGrid.xaml.cs">
+      <DependentUpon>NewsMessageGrid.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="NewsMessagePanel.xaml.cs">
+      <DependentUpon>NewsMessagePanel.xaml</DependentUpon>
+    </Compile>
     <Compile Include="OrderConditionalGrid.cs" />
     <Compile Include="PropertyGrid\DateTimeOffsetEditor.xaml.cs">
       <DependentUpon>DateTimeOffsetEditor.xaml</DependentUpon>
@@ -527,9 +534,6 @@
       <DependentUpon>OrderLogGrid.xaml</DependentUpon>
     </Compile>
     <Compile Include="ISecurityWindow.cs" />
-    <Compile Include="LicensePanel.xaml.cs">
-      <DependentUpon>LicensePanel.xaml</DependentUpon>
-    </Compile>
     <Compile Include="MarketDataGrid.xaml.cs">
       <DependentUpon>MarketDataGrid.xaml</DependentUpon>
     </Compile>
@@ -548,8 +552,8 @@
     <Compile Include="OrderWindow.xaml.cs">
       <DependentUpon>OrderWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="PortfolioSessionHoldersWindow.xaml.cs">
-      <DependentUpon>PortfolioSessionHoldersWindow.xaml</DependentUpon>
+    <Compile Include="PortfolioMessageAdaptersWindow.xaml.cs">
+      <DependentUpon>PortfolioMessageAdaptersWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -597,14 +601,14 @@
     <Compile Include="StorageFormatComboBox.cs" />
     <Compile Include="SecurityTypeComboBox.cs" />
     <Compile Include="SecurityTypesComboBox.cs" />
-    <Compile Include="SessionHoldersPanel.xaml.cs">
-      <DependentUpon>SessionHoldersPanel.xaml</DependentUpon>
+    <Compile Include="MessageAdaptersPanel.xaml.cs">
+      <DependentUpon>MessageAdaptersPanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="SessionHoldersWindow.xaml.cs">
-      <DependentUpon>SessionHoldersWindow.xaml</DependentUpon>
+    <Compile Include="MessageAdaptersWindow.xaml.cs">
+      <DependentUpon>MessageAdaptersWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="SessionHolderWindow.xaml.cs">
-      <DependentUpon>SessionHolderWindow.xaml</DependentUpon>
+    <Compile Include="MessageAdapterWindow.xaml.cs">
+      <DependentUpon>MessageAdapterWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="StatisticParameterGrid.xaml.cs">
       <DependentUpon>StatisticParameterGrid.xaml</DependentUpon>
@@ -668,10 +672,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\StockSharp %28GitLab%29\Licensing\Licensing.csproj">
-      <Project>{baffe041-f00c-4af5-8871-1c4578953352}</Project>
-      <Name>Licensing</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Algo\Algo.csproj">
       <Project>{2A5C6FAD-106C-4A4A-B602-77A6B1034CA2}</Project>
       <Name>Algo</Name>

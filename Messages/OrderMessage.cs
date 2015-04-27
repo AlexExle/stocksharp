@@ -1,5 +1,6 @@
 namespace StockSharp.Messages
 {
+	using System;
 	using System.Runtime.Serialization;
 	
 	using StockSharp.Localization;
@@ -7,6 +8,8 @@ namespace StockSharp.Messages
 	/// <summary>
 	/// Сообщение, содержащее общую информацию о заявке.
 	/// </summary>
+	[DataContract]
+	[Serializable]
 	public abstract class OrderMessage : SecurityMessage
 	{
 		/// <summary>
@@ -35,6 +38,22 @@ namespace StockSharp.Messages
 		[DescriptionLoc(LocalizedStrings.Str166Key)]
 		[MainCategory]
 		public string UserOrderId { get; set; }
+
+		/// <summary>
+		/// Код брокерской фирмы.
+		/// </summary>
+		[CategoryLoc(LocalizedStrings.Str2593Key)]
+		[DisplayNameLoc(LocalizedStrings.BrokerKey)]
+		[DescriptionLoc(LocalizedStrings.Str2619Key)]
+		public string BrokerCode { get; set; }
+
+		/// <summary>
+		/// Код клиента, присвоенный брокером.
+		/// </summary>
+		[CategoryLoc(LocalizedStrings.Str2593Key)]
+		[DisplayNameLoc(LocalizedStrings.Str3425Key)]
+		[DescriptionLoc(LocalizedStrings.Str3426Key)]
+		public string ClientCode { get; set; }
 
 		/// <summary>
 		/// Инициализировать <see cref="OrderMessage"/>.

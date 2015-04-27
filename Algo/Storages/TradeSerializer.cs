@@ -79,7 +79,7 @@ namespace StockSharp.Algo.Storages
 		public TradeSerializer(SecurityId securityId)
 			: base(securityId, 50)
 		{
-			Version = MarketDataVersions.Version50;
+			Version = MarketDataVersions.Version51;
 		}
 
 		protected override void OnSave(BitArrayWriter writer, IEnumerable<ExecutionMessage> messages, TradeMetaInfo metaInfo)
@@ -88,7 +88,7 @@ namespace StockSharp.Algo.Storages
 			{
 				var first = messages.First();
 
-				metaInfo.FirstId = metaInfo.PrevId = first.TradeId;
+				metaInfo.FirstId = metaInfo.PrevId = first.GetTradeId();
 				metaInfo.ServerOffset = first.ServerTime.Offset;
 			}
 
@@ -102,9 +102,11 @@ namespace StockSharp.Algo.Storages
 				if (msg.ExecutionType != ExecutionTypes.Tick)
 					throw new ArgumentOutOfRangeException("messages", msg.ExecutionType, LocalizedStrings.Str1019Params.Put(msg.TradeId));
 
+				var tradeId = msg.GetTradeId();
+
 				// сделки для индексов имеют нулевой номер
-				if (msg.TradeId < 0)
-					throw new ArgumentOutOfRangeException("messages", msg.TradeId, LocalizedStrings.Str1020);
+				if (tradeId < 0)
+					throw new ArgumentOutOfRangeException("messages", tradeId, LocalizedStrings.Str1020);
 
 				// execution ticks (like option execution) may be a zero cost
 				// ticks for spreads may be a zero cost or less than zero
@@ -114,16 +116,18 @@ namespace StockSharp.Algo.Storages
 				// pyhta4og.
 				// http://stocksharp.com/forum/yaf_postsm6450_Oshibka-pri-importie-instrumientov-s-Finama.aspx#post6450
 
-				if (msg.Volume < 0)
-					throw new ArgumentOutOfRangeException("messages", msg.Volume, LocalizedStrings.Str1022Params.Put(msg.TradeId));
+				var volume = msg.GetVolume();
 
-				metaInfo.PrevId = writer.SerializeId(msg.TradeId, metaInfo.PrevId);
+				if (volume < 0)
+					throw new ArgumentOutOfRangeException("messages", volume, LocalizedStrings.Str1022Params.Put(msg.TradeId));
 
-				writer.WriteVolume(msg.Volume, metaInfo, SecurityId);
-				writer.WritePriceEx(msg.TradePrice, metaInfo, SecurityId);
+				metaInfo.PrevId = writer.SerializeId(tradeId, metaInfo.PrevId);
+
+				writer.WriteVolume(volume, metaInfo, SecurityId);
+				writer.WritePriceEx(msg.GetTradePrice(), metaInfo, SecurityId);
 				writer.WriteSide(msg.OriginSide);
 
-				metaInfo.LastTime = writer.WriteTime(msg.ServerTime, metaInfo.LastTime, LocalizedStrings.Str1023, allowNonOrdered, isUtc, metaInfo.ServerOffset);
+				metaInfo.LastTime = writer.WriteTime(msg.ServerTime, metaInfo.LastTime, LocalizedStrings.Str985, allowNonOrdered, isUtc, metaInfo.ServerOffset);
 
 				if (metaInfo.Version < MarketDataVersions.Version40)
 					continue;
@@ -147,10 +151,23 @@ namespace StockSharp.Algo.Storages
 				if (metaInfo.Version < MarketDataVersions.Version42)
 					continue;
 
-				writer.Write(msg.IsSystem);
+				if (metaInfo.Version >= MarketDataVersions.Version51)
+				{
+					writer.Write(msg.IsSystem != null);
 
-				if (!msg.IsSystem)
-					writer.WriteInt(msg.TradeStatus);
+					if (msg.IsSystem != null)
+						writer.Write(msg.IsSystem.Value);
+				}
+				else
+					writer.Write(msg.IsSystem ?? true);
+
+				if (msg.IsSystem == false)
+				{
+					if (metaInfo.Version >= MarketDataVersions.Version51)
+						writer.WriteNullableInt(msg.TradeStatus);
+					else
+						writer.WriteInt(msg.TradeStatus ?? 0);
+				}
 
 				var oi = msg.OpenInterest;
 
@@ -232,10 +249,16 @@ namespace StockSharp.Algo.Storages
 			if (metaInfo.Version < MarketDataVersions.Version42)
 				return msg;
 
-			msg.IsSystem = reader.Read();
+			msg.IsSystem = metaInfo.Version < MarketDataVersions.Version51
+						? reader.Read()
+						: (reader.Read() ? reader.Read() : (bool?)null);
 
-			if (!msg.IsSystem)
-				msg.TradeStatus = reader.ReadInt();
+			if (msg.IsSystem == false)
+			{
+				msg.TradeStatus = metaInfo.Version < MarketDataVersions.Version51
+					? reader.ReadInt()
+					: reader.ReadNullableInt<int>();
+			}
 
 			if (metaInfo.Version < MarketDataVersions.Version46 || reader.Read())
 				msg.OpenInterest = reader.ReadVolume(metaInfo);

@@ -5,32 +5,39 @@ namespace StockSharp.Messages
 	using System.Runtime.Serialization;
 
 	using Ecng.Common;
+	using Ecng.Serialization;
 
 	using StockSharp.Localization;
 
 	/// <summary>
 	/// Типы данных, информация о которых содержится <see cref="ExecutionMessage"/>.
 	/// </summary>
+	[System.Runtime.Serialization.DataContract]
+	[Serializable]
 	public enum ExecutionTypes
 	{
 		/// <summary>
 		/// Тиковая сделка.
 		/// </summary>
+		[EnumMember]
 		Tick,
 
 		/// <summary>
 		/// Лог заявок.
 		/// </summary>
+		[EnumMember]
 		Order,
 
 		/// <summary>
 		/// Собственная сделка.
 		/// </summary>
+		[EnumMember]
 		Trade,
 
 		/// <summary>
 		/// Лог заявок
 		/// </summary>
+		[EnumMember]
 		OrderLog,
 	}
 
@@ -38,7 +45,7 @@ namespace StockSharp.Messages
 	/// Сообщение, содержащее информацию об исполнении.
 	/// </summary>
 	[Serializable]
-	[DataContract]
+	[System.Runtime.Serialization.DataContract]
 	public sealed class ExecutionMessage : Message
 	{
 		/// <summary>
@@ -77,16 +84,16 @@ namespace StockSharp.Messages
 		public DateTimeOffset ServerTime { get; set; }
 
 		/// <summary>
-		/// Номер транзакции.
+		/// Идентификатор транзакции.
 		/// </summary>
 		[DataMember]
 		[DisplayNameLoc(LocalizedStrings.TransactionKey)]
-		[DescriptionLoc(LocalizedStrings.TransactionIdKey)]
+		[DescriptionLoc(LocalizedStrings.TransactionIdKey, true)]
 		[MainCategory]
 		public long TransactionId { get; set; }
 
 		/// <summary>
-		/// Номер первоначальной транзакции, для которой данное сообщение является ответом.
+		/// Идентификатор первоначальной транзакции, для которой данное сообщение является ответом.
 		/// </summary>
 		[DataMember]
 		[DisplayNameLoc(LocalizedStrings.OriginalTrasactionKey)]
@@ -101,6 +108,7 @@ namespace StockSharp.Messages
 		[DisplayNameLoc(LocalizedStrings.DataTypeKey)]
 		[DescriptionLoc(LocalizedStrings.Str110Key)]
 		[MainCategory]
+		[Nullable]
 		public ExecutionTypes? ExecutionType { get; set; }
 
 		/// <summary>
@@ -112,15 +120,6 @@ namespace StockSharp.Messages
 		[MainCategory]
 		public bool IsCancelled { get; set; }
 
-		///// <summary>
-		///// Действие, произошедшее с заявкой.
-		///// </summary>
-		//[DataMember]
-		//[DisplayName("Действие")]
-		//[Description("Действие, произошедшее с заявкой.")]
-		//[MainCategory]
-		//public ExecutionActions Action { get; set; }
-
 		/// <summary>
 		/// Идентификатор заявки.
 		/// </summary>
@@ -128,7 +127,8 @@ namespace StockSharp.Messages
 		[DisplayNameLoc(LocalizedStrings.OrderIdKey)]
 		[DescriptionLoc(LocalizedStrings.OrderIdStringKey, true)]
 		[MainCategory]
-		public long OrderId { get; set; }
+		[Nullable]
+		public long? OrderId { get; set; }
 
 		/// <summary>
 		/// Идентификатор заявки (ввиде строки, если электронная площадка не использует числовое представление идентификатора заявки).
@@ -140,7 +140,7 @@ namespace StockSharp.Messages
 		public string OrderStringId { get; set; }
 
 		/// <summary>
-		/// Идентификатор заявки электронной площадки. Используется, если <see cref="OrderId"/> или <see cref="OrderStringId"/> содержит идентификатор брокерской системы.
+		/// Идентификатор заявки электронной площадки. Используется, если <see cref="OrderId"/> или <see cref="OrderStringId"/> содержат идентификаторы брокерской системы.
 		/// </summary>
 		[DataMember]
 		[DisplayNameLoc(LocalizedStrings.Str117Key)]
@@ -155,6 +155,7 @@ namespace StockSharp.Messages
 		[DisplayNameLoc(LocalizedStrings.DerivedKey)]
 		[DescriptionLoc(LocalizedStrings.DerivedOrderIdKey)]
 		[MainCategory]
+		[Nullable]
 		public long? DerivedOrderId { get; set; }
 
 		/// <summary>
@@ -182,7 +183,8 @@ namespace StockSharp.Messages
 		[DisplayNameLoc(LocalizedStrings.VolumeKey)]
 		[DescriptionLoc(LocalizedStrings.OrderVolumeKey)]
 		[MainCategory]
-		public decimal Volume { get; set; }
+		[Nullable]
+		public decimal? Volume { get; set; }
 
 		/// <summary>
 		/// Видимое количество контрактов в заявке.
@@ -191,7 +193,8 @@ namespace StockSharp.Messages
 		[DisplayNameLoc(LocalizedStrings.VisibleVolumeKey)]
 		[DescriptionLoc(LocalizedStrings.Str127Key)]
 		[MainCategory]
-		public decimal VisibleVolume { get; set; }
+		[Nullable]
+		public decimal? VisibleVolume { get; set; }
 
 		/// <summary>
 		/// Направление заявки (покупка или продажа).
@@ -209,7 +212,8 @@ namespace StockSharp.Messages
 		[DisplayNameLoc(LocalizedStrings.Str130Key)]
 		[DescriptionLoc(LocalizedStrings.Str131Key)]
 		[MainCategory]
-		public decimal Balance { get; set; }
+		[Nullable]
+		public decimal? Balance { get; set; }
 
 		/// <summary>
 		/// Тип заявки.
@@ -225,6 +229,7 @@ namespace StockSharp.Messages
 		/// </summary>
 		[DataMember]
 		[Browsable(false)]
+		[Nullable]
 		public OrderStatus? OrderStatus { get; set; }
 
 		/// <summary>
@@ -234,6 +239,7 @@ namespace StockSharp.Messages
 		[DisplayNameLoc(LocalizedStrings.StateKey)]
 		[DescriptionLoc(LocalizedStrings.Str134Key)]
 		[MainCategory]
+		[Nullable]
 		public OrderStates? OrderState { get; set; }
 
 		/// <summary>
@@ -253,8 +259,6 @@ namespace StockSharp.Messages
 		[MainCategory]
 		public string SystemComment { get; set; }
 
-		private bool _isSystem = true;
-
 		/// <summary>
 		/// Является ли заявка системной.
 		/// </summary>
@@ -262,25 +266,21 @@ namespace StockSharp.Messages
 		[DisplayNameLoc(LocalizedStrings.Str139Key)]
 		[DescriptionLoc(LocalizedStrings.Str140Key)]
 		[MainCategory]
-		public bool IsSystem
-		{
-			get { return _isSystem; }
-			set { _isSystem = value; }
-		}
+		[Nullable]
+		public bool? IsSystem { get; set; }
 
 		/// <summary>
-		/// Время экспирации заявки.
+		/// Время экспирации заявки. По-умолчанию равно <see langword="null"/>, что означает действие заявки до отмены (GTC).
 		/// </summary>
 		/// <remarks>
-		/// Если значение равно <see cref="DateTime.Today"/>, то заявка выставляется сроком на текущую сессию.
-		/// Если значение равно <see cref="DateTime.MaxValue"/>, то заявка выставляется до отмены (GTC).
+		/// Если значение равно <see langword="null"/> или <see cref="DateTimeOffset.MaxValue"/>, то заявка выставляется до отмены (GTC).
 		/// Иначе, указывается конкретный срок.
 		/// </remarks>
 		[DataMember]
 		[DisplayNameLoc(LocalizedStrings.Str141Key)]
 		[DescriptionLoc(LocalizedStrings.Str142Key)]
 		[MainCategory]
-		public DateTimeOffset ExpiryDate { get; set; }
+		public DateTimeOffset? ExpiryDate { get; set; }
 
 		/// <summary>
 		/// Условие исполнения лимитированной заявки.
@@ -288,7 +288,8 @@ namespace StockSharp.Messages
 		[DisplayNameLoc(LocalizedStrings.Str143Key)]
 		[DescriptionLoc(LocalizedStrings.Str144Key)]
 		[MainCategory]
-		public TimeInForce TimeInForce { get; set; }
+		[Nullable]
+		public TimeInForce? TimeInForce { get; set; }
 
 		/// <summary>
 		/// Идентификатор сделки.
@@ -297,7 +298,8 @@ namespace StockSharp.Messages
 		[DisplayNameLoc(LocalizedStrings.OrderIdKey)]
 		[DescriptionLoc(LocalizedStrings.Str145Key)]
 		[MainCategory]
-		public long TradeId { get; set; }
+		[Nullable]
+		public long? TradeId { get; set; }
 
 		/// <summary>
 		/// Идентификатор сделки (ввиде строки, если электронная площадка не использует числовое представление идентификатора сделки).
@@ -315,14 +317,16 @@ namespace StockSharp.Messages
 		[DisplayNameLoc(LocalizedStrings.PriceKey)]
 		[DescriptionLoc(LocalizedStrings.Str147Key)]
 		[MainCategory]
-		public decimal TradePrice { get; set; }
+		[Nullable]
+		public decimal? TradePrice { get; set; }
 
 		/// <summary>
 		/// Системный статус сделки.
 		/// </summary>
 		[DataMember]
 		[Browsable(false)]
-		public int TradeStatus { get; set; }
+		[Nullable]
+		public int? TradeStatus { get; set; }
 
 		/// <summary>
 		/// Инициатор сделки (продавец или покупатель).
@@ -331,6 +335,7 @@ namespace StockSharp.Messages
 		[DisplayNameLoc(LocalizedStrings.Str148Key)]
 		[DescriptionLoc(LocalizedStrings.Str149Key)]
 		[MainCategory]
+		[Nullable]
 		public Sides? OriginSide { get; set; }
 
 		/// <summary>
@@ -340,6 +345,7 @@ namespace StockSharp.Messages
 		[DisplayNameLoc(LocalizedStrings.Str150Key)]
 		[DescriptionLoc(LocalizedStrings.Str151Key)]
 		[MainCategory]
+		[Nullable]
 		public decimal? OpenInterest { get; set; }
 
 		/// <summary>
@@ -374,6 +380,7 @@ namespace StockSharp.Messages
 		[DisplayNameLoc(LocalizedStrings.Str157Key)]
 		[DescriptionLoc(LocalizedStrings.Str158Key)]
 		[MainCategory]
+		[Nullable]
 		public bool? IsUpTick { get; set; }
 
 		/// <summary>
@@ -383,6 +390,7 @@ namespace StockSharp.Messages
 		[DisplayNameLoc(LocalizedStrings.Str159Key)]
 		[DescriptionLoc(LocalizedStrings.Str160Key)]
 		[MainCategory]
+		[Nullable]
 		public decimal? Commission { get; set; }
 
 		/// <summary>
@@ -392,6 +400,7 @@ namespace StockSharp.Messages
 		[DisplayNameLoc(LocalizedStrings.Str161Key)]
 		[DescriptionLoc(LocalizedStrings.Str162Key)]
 		[MainCategory]
+		[Nullable]
 		public TimeSpan? Latency { get; set; }
 
 		/// <summary>
@@ -401,6 +410,7 @@ namespace StockSharp.Messages
 		[DisplayNameLoc(LocalizedStrings.Str163Key)]
 		[DescriptionLoc(LocalizedStrings.Str164Key)]
 		[MainCategory]
+		[Nullable]
 		public decimal? Slippage { get; set; }
 
 		/// <summary>
@@ -432,7 +442,7 @@ namespace StockSharp.Messages
 		}
 
 		/// <summary>
-		/// Создать копию объекта.
+		/// Создать копию объекта <see cref="ExecutionMessage"/>.
 		/// </summary>
 		/// <returns>Копия.</returns>
 		public override Message Clone()

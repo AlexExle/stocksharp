@@ -5,13 +5,15 @@ namespace StockSharp.Messages
 	using System.Linq;
 	using System.Runtime.Serialization;
 
-	using StockSharp.Localization;
-
 	using Ecng.Common;
+
+	using StockSharp.Localization;
 
 	/// <summary>
 	/// Сообщение, содержащее данные по котировкам.
 	/// </summary>
+	[DataContract]
+	[Serializable]
 	public sealed class QuoteChangeMessage : Message
 	{
 		/// <summary>
@@ -92,7 +94,7 @@ namespace StockSharp.Messages
 		}
 
 		/// <summary>
-		/// Создать копию объекта.
+		/// Создать копию объекта <see cref="QuoteChangeMessage"/>.
 		/// </summary>
 		/// <returns>Копия.</returns>
 		public override Message Clone()

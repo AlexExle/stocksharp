@@ -43,7 +43,7 @@ namespace StockSharp.Algo.Export
 					{
 						writer.WriteStartElement("trade");
 
-						writer.WriteAttribute("id", trade.TradeId == 0 ? trade.TradeStringId : trade.TradeId.To<string>());
+						writer.WriteAttribute("id", trade.TradeId == null ? trade.TradeStringId : trade.TradeId.To<string>());
 						writer.WriteAttribute("serverTime", trade.ServerTime.ToString(_timeFormat));
 						writer.WriteAttribute("price", trade.TradePrice);
 						writer.WriteAttribute("volume", trade.Volume);
@@ -68,7 +68,7 @@ namespace StockSharp.Algo.Export
 					{
 						writer.WriteStartElement("item");
 
-						writer.WriteAttribute("id", item.OrderId == 0 ? item.OrderStringId : item.OrderId.To<string>());
+						writer.WriteAttribute("id", item.OrderId == null ? item.OrderStringId : item.OrderId.To<string>());
 						writer.WriteAttribute("serverTime", item.ServerTime.ToString(_timeFormat));
 						writer.WriteAttribute("price", item.Price);
 						writer.WriteAttribute("volume", item.Volume);
@@ -77,9 +77,9 @@ namespace StockSharp.Algo.Export
 						writer.WriteAttribute("timeInForce", item.TimeInForce);
 						writer.WriteAttribute("isSystem", item.IsSystem);
 
-						if (item.TradePrice != 0)
+						if (item.TradePrice != null)
 						{
-							writer.WriteAttribute("tradeId", item.TradeId == 0 ? item.TradeStringId : item.TradeId.To<string>());
+							writer.WriteAttribute("tradeId", item.TradeId == null ? item.TradeStringId : item.TradeId.To<string>());
 							writer.WriteAttribute("tradePrice", item.TradePrice);
 
 							if (item.OpenInterest != null)
@@ -92,6 +92,7 @@ namespace StockSharp.Algo.Export
 					break;
 				}
 				case ExecutionTypes.Order:
+				case ExecutionTypes.Trade:
 				{
 					Do(messages, "executions", (writer, item) =>
 					{
@@ -100,14 +101,14 @@ namespace StockSharp.Algo.Export
 						writer.WriteAttribute("serverTime", item.ServerTime.ToString(_timeFormat));
 						writer.WriteAttribute("portfolio", item.PortfolioName);
 						writer.WriteAttribute("transactionId", item.TransactionId);
-						writer.WriteAttribute("id", item.OrderId == 0 ? item.OrderStringId : item.OrderId.To<string>());
+						writer.WriteAttribute("id", item.OrderId == null ? item.OrderStringId : item.OrderId.To<string>());
 						writer.WriteAttribute("price", item.Price);
 						writer.WriteAttribute("volume", item.Volume);
 						writer.WriteAttribute("balance", item.Balance);
 						writer.WriteAttribute("side", item.Side);
 						writer.WriteAttribute("type", item.OrderType);
 						writer.WriteAttribute("state", item.OrderState);
-						writer.WriteAttribute("tradeId", item.TradeId == 0 ? item.TradeStringId : item.TradeId.To<string>());
+						writer.WriteAttribute("tradeId", item.TradeId == null ? item.TradeStringId : item.TradeId.To<string>());
 						writer.WriteAttribute("tradePrice", item.TradePrice);
 
 						writer.WriteEndElement();
@@ -143,7 +144,6 @@ namespace StockSharp.Algo.Export
 
 					writer.WriteEndElement();
 				}
-			
 
 				writer.WriteEndElement();
 			});
@@ -210,8 +210,8 @@ namespace StockSharp.Algo.Export
 				writer.WriteAttribute("serverTime", n.ServerTime.ToString(_timeFormat));
 				writer.WriteAttribute("localTime", n.LocalTime.ToString(_timeFormat));
 
-				if (!n.SecurityId.IsDefault())
-					writer.WriteAttribute("securityCode", n.SecurityId.SecurityCode);
+				if (n.SecurityId != null)
+					writer.WriteAttribute("securityCode", n.SecurityId.Value.SecurityCode);
 
 				if (!n.BoardCode.IsEmpty())
 					writer.WriteAttribute("boardCode", n.BoardCode);
@@ -243,11 +243,24 @@ namespace StockSharp.Algo.Export
 
 				writer.WriteAttribute("code", security.SecurityId.SecurityCode);
 				writer.WriteAttribute("board", security.SecurityId.BoardCode);
-				writer.WriteAttribute("priceStep", security.PriceStep);
-				//writer.WriteAttribute("stepPrice", security.StepPrice);
-				writer.WriteAttribute("volumeStep", security.VolumeStep);
-				writer.WriteAttribute("multiplier", security.Multiplier);
-				//writer.WriteAttribute("decimals", security.Decimals);
+
+				if (!security.Name.IsEmpty())
+					writer.WriteAttribute("name", security.Name);
+
+				if (!security.ShortName.IsEmpty())
+					writer.WriteAttribute("shortName", security.ShortName);
+
+				if (security.PriceStep != null)
+					writer.WriteAttribute("priceStep", security.PriceStep.Value);
+
+				if (security.VolumeStep != null)
+					writer.WriteAttribute("volumeStep", security.VolumeStep.Value);
+
+				if (security.Multiplier != null)
+					writer.WriteAttribute("multiplier", security.Multiplier.Value);
+
+				if (security.Decimals != null)
+					writer.WriteAttribute("decimals", security.Decimals.Value);
 
 				if (security.Currency != null)
 					writer.WriteAttribute("currency", security.Currency.Value);
@@ -258,8 +271,8 @@ namespace StockSharp.Algo.Export
 				if (security.OptionType != null)
 					writer.WriteAttribute("optionType", security.OptionType.Value);
 
-				if (security.Strike != 0)
-					writer.WriteAttribute("strike", security.Strike);
+				if (security.Strike != null)
+					writer.WriteAttribute("strike", security.Strike.Value);
 
 				if (!security.BinaryOptionType.IsEmpty())
 					writer.WriteAttribute("binaryOptionType", security.BinaryOptionType);
@@ -272,6 +285,30 @@ namespace StockSharp.Algo.Export
 
 				if (security.SettlementDate != null)
 					writer.WriteAttribute("settlementDate", security.SettlementDate.Value.ToString("yyyy-MM-dd"));
+
+				if (!security.SecurityId.Bloomberg.IsEmpty())
+					writer.WriteAttribute("bloomberg", security.SecurityId.Bloomberg);
+
+				if (!security.SecurityId.Cusip.IsEmpty())
+					writer.WriteAttribute("cusip", security.SecurityId.Cusip);
+
+				if (!security.SecurityId.IQFeed.IsEmpty())
+					writer.WriteAttribute("iqfeed", security.SecurityId.IQFeed);
+
+				if (security.SecurityId.InteractiveBrokers != null)
+					writer.WriteAttribute("ib", security.SecurityId.InteractiveBrokers);
+
+				if (!security.SecurityId.Isin.IsEmpty())
+					writer.WriteAttribute("isin", security.SecurityId.Isin);
+
+				if (!security.SecurityId.Plaza.IsEmpty())
+					writer.WriteAttribute("plaza", security.SecurityId.Plaza);
+
+				if (!security.SecurityId.Ric.IsEmpty())
+					writer.WriteAttribute("ric", security.SecurityId.Ric);
+
+				if (!security.SecurityId.Sedol.IsEmpty())
+					writer.WriteAttribute("sedol", security.SecurityId.Sedol);
 
 				writer.WriteEndElement();
 			});

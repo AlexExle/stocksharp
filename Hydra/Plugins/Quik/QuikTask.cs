@@ -3,6 +3,7 @@ namespace StockSharp.Hydra.Quik
 	using System;
 	using System.Collections.Generic;
 	using System.ComponentModel;
+	using System.Linq;
 
 	using Ecng.Collections;
 	using Ecng.Common;
@@ -11,7 +12,6 @@ namespace StockSharp.Hydra.Quik
 
 	using StockSharp.BusinessEntities;
 	using StockSharp.Hydra.Core;
-	using StockSharp.Logging;
 	using StockSharp.Messages;
 	using StockSharp.Quik;
 	using StockSharp.Quik.Xaml;
@@ -34,7 +34,7 @@ namespace StockSharp.Hydra.Quik
 			/// <summary>
 			/// Атрибут для поддержки динамически показываемых свойств
 			/// </summary>
-			[AttributeUsage(AttributeTargets.Property, Inherited = true)]
+			[AttributeUsage(AttributeTargets.Property)]
 			private sealed class DynamicPropertyFilterAttribute : Attribute
 			{
 				private readonly string _propertyName;
@@ -47,14 +47,14 @@ namespace StockSharp.Hydra.Quik
 					get { return _propertyName; }
 				}
 
-				private readonly string _showOn;
+				private readonly object _showOn;
 
 				/// <summary>
 				/// Значения свойства от которого зависит видимость 
 				/// (через запятую, если несколько), при котором свойство, к
 				/// которому применен атрибут, будет видимо. 
 				/// </summary>
-				public string ShowOn
+				public object ShowOn
 				{
 					get { return _showOn; }
 				}
@@ -63,12 +63,12 @@ namespace StockSharp.Hydra.Quik
 				/// Конструктор  
 				/// </summary>
 				/// <param name="propName">Название свойства, от которого будет зависить видимость</param>
-				/// <param name="value">Значения свойства, через запятую, если несколько, при котором свойство, к
+				/// <param name="showOn">Значения свойства, через запятую, если несколько, при котором свойство, к
 				/// которому применен атрибут, будет видимо.</param>
-				public DynamicPropertyFilterAttribute(string propName, string value)
+				public DynamicPropertyFilterAttribute(string propName, object showOn)
 				{
 					_propertyName = propName;
-					_showOn = value;
+					_showOn = showOn;
 				}
 			}
 
@@ -125,7 +125,7 @@ namespace StockSharp.Hydra.Quik
 			[DescriptionLoc(LocalizedStrings.Str2807Key)]
 			[PropertyOrder(2)]
 			[Editor(typeof(DdeSecurityColumnsEditor), typeof(DdeSecurityColumnsEditor))]
-			[DynamicPropertyFilter("IsDownloadSecurityChangesHistory", "False")]
+			[DynamicPropertyFilter("IsDownloadSecurityChangesHistory", false)]
 			public List<string> ExtendedColumns
 			{
 				get { return (List<string>)ExtensionInfo["ExtendedColumns"]; }
@@ -137,7 +137,7 @@ namespace StockSharp.Hydra.Quik
 			[DescriptionLoc(LocalizedStrings.Str2809Key)]
 			[PropertyOrder(3)]
 			[Editor(typeof(DdeSecurityChangesColumnsEditor), typeof(DdeSecurityChangesColumnsEditor))]
-			[DynamicPropertyFilter("IsDownloadSecurityChangesHistory", "True")]
+			[DynamicPropertyFilter("IsDownloadSecurityChangesHistory", true)]
 			public List<string> ExtendedColumnsHistory
 			{
 				get { return (List<string>)ExtensionInfo["ExtendedColumnsHistory"]; }
@@ -175,9 +175,9 @@ namespace StockSharp.Hydra.Quik
 
 						dynamic = true;
 
-						var temp = pdc[dpf.PropertyName].GetValue(this);
+						var value = pdc[dpf.PropertyName].GetValue(this);
 
-						if (dpf.ShowOn.ContainsIgnoreCase(temp.ToString()))
+						if (Equals(dpf.ShowOn, value))
 						{
 							include = true;
 						}
@@ -228,7 +228,7 @@ namespace StockSharp.Hydra.Quik
 
 			PropertyDescriptorCollection ICustomTypeDescriptor.GetProperties()
 			{
-				return GetFilteredProperties(ArrayHelper<Attribute>.EmptyArray);
+				return GetFilteredProperties(ArrayHelper.Empty<Attribute>());
 			}
 
 			public object GetEditor(Type editorBaseType)
@@ -309,7 +309,7 @@ namespace StockSharp.Hydra.Quik
 			get { return _settings; }
 		}
 
-		protected override MarketDataConnector<QuikTrader> CreateTrader(HydraTaskSettings settings)
+		protected override MarketDataConnector<QuikTrader> CreateConnector(HydraTaskSettings settings)
 		{
 			_settings = new QuikSettings(settings);
 
@@ -324,46 +324,19 @@ namespace StockSharp.Hydra.Quik
 			return new QuikMarketDataConnector(EntityRegistry.Securities, this, CreateHydraQuikTrader, _settings);
 		}
 
-		private sealed class HydraQuikTransactionAdapter : MessageAdapter<MessageSessionHolder>
+		private QuikTrader CreateHydraQuikTrader()
 		{
-			public HydraQuikTransactionAdapter(MessageSessionHolder sessionHolder)
-				: base(MessageAdapterTypes.Transaction, sessionHolder)
-			{
-			}
-
-			protected override void OnSendInMessage(Message message)
-			{
-				switch (message.Type)
-				{
-					case MessageTypes.Connect:
-						SendOutMessage(new ConnectMessage());
-						break;
-
-					case MessageTypes.Disconnect:
-						SendOutMessage(new DisconnectMessage());
-						break;
-
-					case MessageTypes.Time: // обработка heartbeat
-						break;
-
-					default:
-						throw new NotSupportedException(LocalizedStrings.Str2811Params.Put(message.Type));
-				}
-			}
-		}
-
-		private HydraQuikTrader CreateHydraQuikTrader()
-		{
-			var connector = new HydraQuikTrader
+			var connector = new QuikTrader
 			{
 				IsDde = _settings.IsDde,
 				Path = _settings.Path,
 				DdeServer = _settings.DdeServer,
-				IsDownloadSecurityChangesHistory = _settings.IsDownloadSecurityChangesHistory,
 			};
 
-			if (_settings.IsDde)
-				connector.TransactionAdapter = new HydraQuikTransactionAdapter((MessageSessionHolder)connector.TransactionAdapter.SessionHolder);
+			connector.DdeTables = new[] { connector.SecuritiesTable, connector.TradesTable, connector.OrdersTable, connector.StopOrdersTable, connector.MyTradesTable };
+
+			if (_settings.IsDownloadSecurityChangesHistory)
+				connector.DdeTables = connector.DdeTables.Concat(new[] { connector.SecuritiesChangeTable });
 
 			//Добавление выбранных колонок в экспорт
 			if (!_settings.IsDownloadSecurityChangesHistory)
@@ -384,18 +357,18 @@ namespace StockSharp.Hydra.Quik
 			return connector;
 		}
 
-		/// <summary>
-		/// Выполнить задачу.
-		/// </summary>
-		/// <returns>Минимальный интервал, после окончания которого необходимо снова выполнить задачу.</returns>
-		protected override TimeSpan OnProcess()
-		{
-			// если фильтр по инструментам выключен (выбран инструмент все инструменты)
-			if (Connector.Connector.IsDde || this.GetAllSecurity() == null)
-				return base.OnProcess();
+		///// <summary>
+		///// Выполнить задачу.
+		///// </summary>
+		///// <returns>Минимальный интервал, после окончания которого необходимо снова выполнить задачу.</returns>
+		//protected override TimeSpan OnProcess()
+		//{
+		//	// если фильтр по инструментам выключен (выбран инструмент все инструменты)
+		//	if (Connector.Connector.IsDde || this.GetAllSecurity() == null)
+		//		return base.OnProcess();
 
-			this.AddWarningLog(LocalizedStrings.Str2812);
-			return TimeSpan.MaxValue;
-		}
+		//	this.AddWarningLog(LocalizedStrings.Str2812);
+		//	return TimeSpan.MaxValue;
+		//}
 	}
 }

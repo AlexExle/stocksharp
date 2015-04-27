@@ -10,6 +10,8 @@ namespace StockSharp.Messages
 	/// <summary>
 	/// Сообщение, содержащее данные об электронной площадке.
 	/// </summary>
+	[DataContract]
+	[Serializable]
 	public class BoardMessage : Message
 	{
 		/// <summary>
@@ -115,7 +117,7 @@ namespace StockSharp.Messages
 		}
 
 		/// <summary>
-		/// Создать копию объекта.
+		/// Создать копию объекта <see cref="BoardMessage"/>.
 		/// </summary>
 		/// <returns>Копия.</returns>
 		public override Message Clone()

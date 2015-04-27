@@ -14,10 +14,8 @@ namespace StockSharp.Algo
 	using StockSharp.Algo.Testing;
 	using StockSharp.BusinessEntities;
 	using StockSharp.Messages;
-
-	using SubscriptionAction = System.Action<BusinessEntities.IConnector, BusinessEntities.Security>;
-
 	using StockSharp.Localization;
+	using SubscriptionAction = System.Action<BusinessEntities.IConnector, BusinessEntities.Security>;
 
 	/// <summary>
 	/// Интерфейс, описывающий список подключений к торговым системам, с которыми оперирует агрегатор.
@@ -1149,7 +1147,7 @@ namespace StockSharp.Algo
 
 			var enumerator = GetConnectedConnectors().ToArray().Cast<IConnector>().GetEnumerator();
 
-			_subscriptionQueue.Add(key, new RefTriple<IEnumerator<IConnector>, SubscriptionAction, SubscriptionAction>(enumerator, action, null));
+			_subscriptionQueue.Add(key, RefTuple.Create(enumerator, action, (SubscriptionAction)null));
 
 			ProcessSubscriptionAction(enumerator, security, type, action);
 		}

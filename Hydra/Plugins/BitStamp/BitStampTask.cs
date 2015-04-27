@@ -2,31 +2,60 @@ namespace StockSharp.Hydra.BitStamp
 {
 	using System;
 	using System.ComponentModel;
+	using System.Security;
 
 	using Ecng.Common;
 	using Ecng.Xaml;
 
 	using StockSharp.BitStamp;
 	using StockSharp.Hydra.Core;
-	using StockSharp.Messages;
 	using StockSharp.Localization;
+
+	using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
 
 	[TaskDisplayName(_sourceName)]
 	[Category(TaskCategories.Crypto)]
-	class BtceTask : ConnectorHydraTask<BitStampTrader>
+	class BitStampTask : ConnectorHydraTask<BitStampTrader>
 	{
 		private const string _sourceName = "BitStamp";
 
 		[TaskSettingsDisplayName(_sourceName)]
-		private sealed class BtceSettings : ConnectorHydraTaskSettings
+		[CategoryOrder(_sourceName, 0)]
+		private sealed class BitStampSettings : ConnectorHydraTaskSettings
 		{
-			public BtceSettings(HydraTaskSettings settings)
+			public BitStampSettings(HydraTaskSettings settings)
 				: base(settings)
 			{
 			}
+
+			/// <summary>
+			/// Ключ.
+			/// </summary>
+			[TaskCategory(_sourceName)]
+			[DisplayNameLoc(LocalizedStrings.Str3304Key)]
+			[DescriptionLoc(LocalizedStrings.Str3304Key, true)]
+			[PropertyOrder(1)]
+			public SecureString Key
+			{
+				get { return ExtensionInfo["Key"].To<SecureString>(); }
+				set { ExtensionInfo["Key"] = value; }
+			}
+
+			/// <summary>
+			/// Секрет.
+			/// </summary>
+			[TaskCategory(_sourceName)]
+			[DisplayNameLoc(LocalizedStrings.Str3306Key)]
+			[DescriptionLoc(LocalizedStrings.Str3307Key)]
+			[PropertyOrder(2)]
+			public SecureString Secret
+			{
+				get { return ExtensionInfo["Secret"].To<SecureString>(); }
+				set { ExtensionInfo["Secret"] = value; }
+			}
 		}
 
-		private BtceSettings _settings;
+		private BitStampSettings _settings;
 
 		public override Uri Icon
 		{
@@ -43,13 +72,20 @@ namespace StockSharp.Hydra.BitStamp
 			get { return _settings; }
 		}
 
-		protected override MarketDataConnector<BitStampTrader> CreateTrader(HydraTaskSettings settings)
+		protected override MarketDataConnector<BitStampTrader> CreateConnector(HydraTaskSettings settings)
 		{
-			_settings = new BtceSettings(settings);
+			_settings = new BitStampSettings(settings);
+
+			if (_settings.IsDefault)
+			{
+				_settings.Key = new SecureString();
+				_settings.Secret = new SecureString();
+			}
 
 			return new MarketDataConnector<BitStampTrader>(EntityRegistry.Securities, this, () => new BitStampTrader
 			{
-				TransactionAdapter = new PassThroughMessageAdapter(new PassThroughSessionHolder(new IncrementalIdGenerator()))
+				Key = _settings.Key.To<string>(),
+				Secret = _settings.Secret.To<string>(),
 			});
 		}
 	}

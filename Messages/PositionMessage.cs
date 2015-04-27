@@ -1,14 +1,18 @@
 ﻿namespace StockSharp.Messages
 {
+	using System;
 	using System.Runtime.Serialization;
 
 	using Ecng.Common;
+	using Ecng.Serialization;
 
 	using StockSharp.Localization;
 
 	/// <summary>
 	/// Сообщение, содержащее данные о позиции.
 	/// </summary>
+	[System.Runtime.Serialization.DataContract]
+	[Serializable]
 	public sealed class PositionMessage : Message
 	{
 		/// <summary>
@@ -52,12 +56,14 @@
 		[DisplayNameLoc(LocalizedStrings.Str272Key)]
 		[DescriptionLoc(LocalizedStrings.Str267Key)]
 		[MainCategory]
+		[Nullable]
 		public TPlusLimits? LimitType { get; set; }
 
 		/// <summary>
-		/// Номер первоначального сообщения <see cref="PortfolioMessage.TransactionId"/>,
+		/// Идентификатор первоначального сообщения <see cref="PortfolioMessage.TransactionId"/>,
 		/// для которого данное сообщение является ответом.
 		/// </summary>
+		[DataMember]
 		public long OriginalTransactionId { get; set; }
 
 		/// <summary>

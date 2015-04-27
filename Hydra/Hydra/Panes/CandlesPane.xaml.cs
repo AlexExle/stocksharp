@@ -46,11 +46,6 @@ namespace StockSharp.Hydra.Panes
 			set { SelectSecurityBtn.SelectedSecurity = value; }
 		}
 
-		public override bool InProcess
-		{
-			get { return Progress.IsStarted; }
-		}
-
 		private CandleSeries CandleSeries
 		{
 			get { return new CandleSeries(CandleSettings.Settings.CandleType, SelectedSecurity, Arg); }
@@ -93,7 +88,7 @@ namespace StockSharp.Hydra.Panes
 					return StorageRegistry
 							.GetCandleMessageStorage(typeof(TimeFrameCandleMessage), SelectedSecurity, TimeSpan.FromMinutes(1), Drive, StorageFormat)
 							.Load(from, to)
-							.ToTrades(SelectedSecurity.VolumeStep)
+							.ToTrades(SelectedSecurity.VolumeStep ?? 1m)
 							.ToCandles(CandleSeries);
 			
 				default:

@@ -34,10 +34,8 @@ namespace StockSharp.Studio
 	using StockSharp.Xaml;
 	using StockSharp.Xaml.Code;
 	using StockSharp.Xaml.Diagram;
-
-	using License = StockSharp.Licensing.License;
-
 	using StockSharp.Localization;
+	using License = StockSharp.Licensing.License;
 
 	internal static class Extensions
 	{
@@ -103,6 +101,8 @@ namespace StockSharp.Studio
 			var info = strategy.StrategyInfo;
 			var index = info.Strategies.Count(s => s.SessionType == strategy.SessionType) + 1;
 
+			string name;
+
 			switch (strategy.SessionType)
 			{
 				case SessionType.Battle:
@@ -111,15 +111,15 @@ namespace StockSharp.Studio
 						case StrategyInfoTypes.SourceCode:
 						case StrategyInfoTypes.Diagram:
 						case StrategyInfoTypes.Assembly:
-							strategy.Name = LocalizedStrings.Str3599 + " " + index;
+							name = LocalizedStrings.Str3599;
 							break;
 
 						case StrategyInfoTypes.Analytics:
-							strategy.Name = LocalizedStrings.Str3604 + index;
+							name = LocalizedStrings.Str3604;
 							break;
 
 						case StrategyInfoTypes.Terminal:
-							strategy.Name = LocalizedStrings.Str3605 + index;
+							name = LocalizedStrings.Str3605;
 							break;
 
 						default:
@@ -128,16 +128,18 @@ namespace StockSharp.Studio
 					break;
 
 				case SessionType.Emulation:
-					strategy.Name = LocalizedStrings.Str3606 + index;
+					name = LocalizedStrings.Str3606;
 					break;
 
 				case SessionType.Optimization:
-					strategy.Name = LocalizedStrings.Str3177 + " " + index;
+					name = LocalizedStrings.Str3177;
 					break;
 
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
+
+			strategy.Name = name + " " + index;
 		}
 
 		private static void UpdateStrategies(this StrategyInfo info)
@@ -627,7 +629,7 @@ namespace StockSharp.Studio
 
 		public static void AddStockSharpFixConnection(this StudioConnector connector, string serverAddress = "localhost:5001")
 		{
-			if (connector.BasketSessionHolder.InnerSessions.Count > 1)
+			if (((BasketMessageAdapter)connector.MarketDataAdapter).InnerAdapters.Count > 1)
 				return;
 
 			var client = ConfigManager.GetService<AuthenticationClient>();
@@ -635,36 +637,33 @@ namespace StockSharp.Studio
 			var login = client.Credentials.Login;
 			var pass = client.Credentials.Password;
 
-			var fixSessionholder = new FixSessionHolder(connector.TransactionIdGenerator)
-			{
-				MarketDataSession =
-				{
-					Login = login,
-					Password = pass,
-					Address = serverAddress.To<EndPoint>(),
-					TargetCompId = "StockSharpMD",
-					SenderCompId = login,
-					MarketData = FixMarketData.MarketData,
-					ExchangeBoard = ExchangeBoard.Forts,
-					Version = FixVersions.Fix44
-				},
-				TransactionSession =
-				{
-					Login = login,
-					Password = pass,
-					Address = serverAddress.To<EndPoint>(),
-					TargetCompId = "StockSharpTS",
-					SenderCompId = login,
-					MarketData = FixMarketData.None,
-					ExchangeBoard = ExchangeBoard.Forts,
-					Version = FixVersions.Fix44,
-					RequestAllPortfolios = true
-				},
-				IsMarketDataEnabled = true,
-				IsTransactionEnabled = true,
-			};
+			var mdAdapter = (BasketMessageAdapter)connector.MarketDataAdapter;
+			var tsAdapter = (BasketMessageAdapter)connector.TransactionAdapter;
 
-			connector.BasketSessionHolder.InnerSessions.Add(fixSessionholder, 0);
+			mdAdapter.InnerAdapters.Add(new FixMessageAdapter(connector.TransactionIdGenerator)
+			{
+				Login = login,
+				Password = pass,
+				Address = serverAddress.To<EndPoint>(),
+				TargetCompId = "StockSharpMD",
+				SenderCompId = login,
+				MarketData = FixMarketData.MarketData,
+				ExchangeBoard = ExchangeBoard.Forts,
+				Version = FixVersions.Fix44
+			});
+
+			tsAdapter.InnerAdapters.Add(new FixMessageAdapter(connector.TransactionIdGenerator)
+			{
+				Login = login,
+				Password = pass,
+				Address = serverAddress.To<EndPoint>(),
+				TargetCompId = "StockSharpTS",
+				SenderCompId = login,
+				MarketData = FixMarketData.None,
+				ExchangeBoard = ExchangeBoard.Forts,
+				Version = FixVersions.Fix44,
+				RequestAllPortfolios = true
+			});
 		}
 
 		public static bool IsEmulation(this StrategyContainer container)

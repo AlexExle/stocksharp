@@ -27,7 +27,7 @@ namespace SampleLMAX
 		{
 			InitializeComponent();
 
-			CandlesPeriods.ItemsSource = LmaxSessionHolder.TimeFrames;
+			CandlesPeriods.ItemsSource = LmaxMessageAdapter.TimeFrames;
 			CandlesPeriods.SelectedIndex = 1;
 		}
 
@@ -96,11 +96,11 @@ namespace SampleLMAX
 
 			var window = _quotesWindows.SafeAdd(SecurityPicker.SelectedSecurity, security =>
 			{
-				// начинаем получать котировки стакана
+				// subscribe on order book flow
 				trader.RegisterMarketDepth(security);
 
-				// создаем окно со стаканом
-				var wnd = new QuotesWindow { Title = security.Id + LocalizedStrings.Str2957 };
+				// create order book window
+				var wnd = new QuotesWindow { Title = security.Id + " " + LocalizedStrings.MarketDepth };
 				wnd.MakeHideable();
 				return wnd;
 			});

@@ -63,7 +63,7 @@ namespace StockSharp.Algo.Export
 						foreach (var message in messages)
 						{
 							worker
-								.SetCell(0, index, message.TradeId == 0 ? message.TradeStringId : message.TradeId.To<string>())
+								.SetCell(0, index, message.TradeId == null ? message.TradeStringId : message.TradeId.To<string>())
 								.SetCell(1, index, message.ServerTime)
 								.SetCell(2, index, message.TradePrice)
 								.SetCell(3, index, message.Volume)
@@ -102,7 +102,7 @@ namespace StockSharp.Algo.Export
 						foreach (var message in messages)
 						{
 							worker
-								.SetCell(0, index, message.OrderId == 0 ? message.OrderStringId : message.OrderId.To<string>())
+								.SetCell(0, index, message.OrderId == null ? message.OrderStringId : message.OrderId.To<string>())
 								.SetCell(1, index, message.ServerTime)
 								.SetCell(2, index, message.Price)
 								.SetCell(3, index, message.Volume)
@@ -111,10 +111,10 @@ namespace StockSharp.Algo.Export
 								.SetCell(6, index, message.TimeInForce)
 								.SetCell(7, index, message.IsSystem);
 
-							if (message.TradePrice != 0)
+							if (message.TradePrice != null)
 							{
 								worker
-									.SetCell(8, index, message.TradeId == 0 ? message.TradeStringId : message.TradeId.To<string>())
+									.SetCell(8, index, message.TradeId == null ? message.TradeStringId : message.TradeId.To<string>())
 									.SetCell(9, index, message.TradePrice)
 									.SetCell(10, index, message.OpenInterest);
 							}
@@ -154,14 +154,14 @@ namespace StockSharp.Algo.Export
 								.SetCell(0, index, message.ServerTime)
 								.SetCell(1, index, message.PortfolioName)
 								.SetCell(2, index, message.TransactionId)
-								.SetCell(3, index, message.OrderId == 0 ? message.OrderStringId : message.OrderId.To<string>())
+								.SetCell(3, index, message.OrderId == null ? message.OrderStringId : message.OrderId.To<string>())
 								.SetCell(4, index, message.Price)
 								.SetCell(5, index, message.Volume)
 								.SetCell(6, index, message.Balance)
 								.SetCell(7, index, message.Side)
 								.SetCell(8, index, message.OrderType)
 								.SetCell(9, index, message.OrderState)
-								.SetCell(10, index, message.TradeId == 0 ? message.TradeStringId : message.TradeId.To<string>())
+								.SetCell(10, index, message.TradeId == null ? message.TradeStringId : message.TradeId.To<string>())
 								.SetCell(11, index, message.TradePrice);
 
 							index++;
@@ -361,7 +361,7 @@ namespace StockSharp.Algo.Export
 					worker
 						.SetCell(0, index, n.Id)
 						.SetCell(1, index, n.ServerTime)
-						.SetCell(2, index, n.SecurityId.SecurityCode)
+						.SetCell(2, index, n.SecurityId == null ? null : n.SecurityId.Value.SecurityCode)
 						.SetCell(3, index, n.BoardCode)
 						.SetCell(4, index, n.Headline)
 						.SetCell(5, index, n.Story)
@@ -384,41 +384,69 @@ namespace StockSharp.Algo.Export
 		{
 			Do(worker =>
 			{
-				worker
-					.SetCell(0, 0, LocalizedStrings.Code).SetStyle(0, typeof(string))
-					.SetCell(1, 0, LocalizedStrings.Board).SetStyle(1, typeof(string))
-					.SetCell(2, 0, LocalizedStrings.PriceStep).SetStyle(2, typeof(decimal))
-					//.SetCell(3, 0, "Стоимость шага").SetStyle(3, typeof(decimal))
-					.SetCell(3, 0, LocalizedStrings.Str365).SetStyle(4, typeof(decimal))
-					.SetCell(4, 0, LocalizedStrings.Str330).SetStyle(5, typeof(decimal))
-					.SetCell(5, 0, LocalizedStrings.Type).SetStyle(5, typeof(string))
-					//.SetCell(6, 0, "Точность").SetStyle(6, typeof(decimal))
-					.SetCell(6, 0, LocalizedStrings.Str551).SetStyle(5, typeof(string))
-					.SetCell(7, 0, LocalizedStrings.Strike).SetStyle(6, typeof(decimal))
-					.SetCell(8, 0, LocalizedStrings.UnderlyingAsset).SetStyle(6, typeof(string))
-					.SetCell(9, 0, LocalizedStrings.ExpiryDate).SetStyle(6, "yyyy-MM-dd");
+				var colIndex = 0;
 
-				var index = 1;
+				worker
+					.SetCell(colIndex, 0, LocalizedStrings.Code).SetStyle(colIndex++, typeof(string))
+					.SetCell(colIndex, 0, LocalizedStrings.Board).SetStyle(colIndex++, typeof(string))
+					.SetCell(colIndex, 0, LocalizedStrings.Name).SetStyle(colIndex++, typeof(string))
+					.SetCell(colIndex, 0, LocalizedStrings.Str363).SetStyle(colIndex++, typeof(string))
+					.SetCell(colIndex, 0, LocalizedStrings.PriceStep).SetStyle(colIndex++, typeof(decimal))
+					.SetCell(colIndex, 0, LocalizedStrings.Str365).SetStyle(colIndex++, typeof(decimal))
+					.SetCell(colIndex, 0, LocalizedStrings.Str330).SetStyle(colIndex++, typeof(decimal))
+					.SetCell(colIndex, 0, LocalizedStrings.Type).SetStyle(colIndex++, typeof(string))
+					.SetCell(colIndex, 0, LocalizedStrings.Str547).SetStyle(colIndex++, typeof(decimal))
+					.SetCell(colIndex, 0, LocalizedStrings.Str551).SetStyle(colIndex++, typeof(string))
+					.SetCell(colIndex, 0, LocalizedStrings.Strike).SetStyle(colIndex++, typeof(decimal))
+					.SetCell(colIndex, 0, LocalizedStrings.UnderlyingAsset).SetStyle(colIndex++, typeof(string))
+					.SetCell(colIndex, 0, LocalizedStrings.ExpiryDate).SetStyle(colIndex++, "yyyy-MM-dd")
+					.SetCell(colIndex, 0, LocalizedStrings.SettlementDate).SetStyle(colIndex++, "yyyy-MM-dd")
+					.SetCell(colIndex, 0, LocalizedStrings.Str250).SetStyle(colIndex++, typeof(string))
+
+					.SetCell(colIndex, 0, "Bloomberg").SetStyle(colIndex++, typeof(string))
+					.SetCell(colIndex, 0, "CUSIP").SetStyle(colIndex++, typeof(string))
+					.SetCell(colIndex, 0, "IQFeed").SetStyle(colIndex++, typeof(string))
+					.SetCell(colIndex, 0, "InteractiveBrokers").SetStyle(colIndex++, typeof(string))
+					.SetCell(colIndex, 0, "ISIN").SetStyle(colIndex++, typeof(string))
+					.SetCell(colIndex, 0, "Plaza").SetStyle(colIndex++, typeof(string))
+					.SetCell(colIndex, 0, "RIC").SetStyle(colIndex++, typeof(string))
+					.SetCell(colIndex, 0, "SEDOL").SetStyle(colIndex, typeof(string));
+
+				var rowIndex = 1;
 
 				foreach (var security in messages)
 				{
+					colIndex = 0;
+
 					worker
-						.SetCell(0, index, security.SecurityId.SecurityCode)
-						.SetCell(1, index, security.SecurityId.BoardCode)
-						.SetCell(2, index, security.PriceStep)
-						//.SetCell(3, index, security.StepPrice)
-						.SetCell(3, index, security.VolumeStep)
-						.SetCell(4, index, security.Multiplier)
-						.SetCell(5, index, security.SecurityType == null ? string.Empty : security.SecurityType.Value.GetDisplayName())
-						//.SetCell(6, index, security.Decimals)
-						.SetCell(6, index, security.OptionType == null ? string.Empty : security.OptionType.Value.GetDisplayName())
-						.SetCell(7, index, security.Strike)
-						.SetCell(8, index, security.UnderlyingSecurityCode)
-						.SetCell(9, index, security.ExpiryDate);
+						.SetCell(colIndex++, rowIndex, security.SecurityId.SecurityCode)
+						.SetCell(colIndex++, rowIndex, security.SecurityId.BoardCode)
+						.SetCell(colIndex++, rowIndex, security.Name)
+						.SetCell(colIndex++, rowIndex, security.ShortName)
+						.SetCell(colIndex++, rowIndex, security.PriceStep)
+						.SetCell(colIndex++, rowIndex, security.VolumeStep)
+						.SetCell(colIndex++, rowIndex, security.Multiplier)
+						.SetCell(colIndex++, rowIndex, security.SecurityType == null ? string.Empty : security.SecurityType.Value.GetDisplayName())
+						.SetCell(colIndex++, rowIndex, security.Decimals)
+						.SetCell(colIndex++, rowIndex, security.OptionType == null ? string.Empty : security.OptionType.Value.GetDisplayName())
+						.SetCell(colIndex++, rowIndex, security.Strike)
+						.SetCell(colIndex++, rowIndex, security.BinaryOptionType)
+						.SetCell(colIndex++, rowIndex, security.UnderlyingSecurityCode)
+						.SetCell(colIndex++, rowIndex, security.ExpiryDate)
+						.SetCell(colIndex++, rowIndex, security.SettlementDate)
+						.SetCell(colIndex++, rowIndex, security.Currency == null ? string.Empty : security.Currency.Value.GetDisplayName())
+						.SetCell(colIndex++, rowIndex, security.SecurityId.Bloomberg)
+						.SetCell(colIndex++, rowIndex, security.SecurityId.Cusip)
+						.SetCell(colIndex++, rowIndex, security.SecurityId.IQFeed)
+						.SetCell(colIndex++, rowIndex, security.SecurityId.InteractiveBrokers)
+						.SetCell(colIndex++, rowIndex, security.SecurityId.Isin)
+						.SetCell(colIndex++, rowIndex, security.SecurityId.Plaza)
+						.SetCell(colIndex++, rowIndex, security.SecurityId.Ric)
+						.SetCell(colIndex, rowIndex, security.SecurityId.Sedol);
 
-					index++;
+					rowIndex++;
 
-					if (!Check(index))
+					if (!Check(rowIndex))
 						break;
 				}
 			});

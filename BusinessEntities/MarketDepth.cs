@@ -13,7 +13,6 @@ namespace StockSharp.BusinessEntities
 	using MoreLinq;
 
 	using StockSharp.Messages;
-
 	using StockSharp.Localization;
 
 	/// <summary>
@@ -21,7 +20,6 @@ namespace StockSharp.BusinessEntities
 	/// </summary>
 	[System.Runtime.Serialization.DataContract]
 	[Serializable]
-	[Ignore(FieldName = "IsDisposed")]
 	//[EntityFactory(typeof(UnitializedEntityFactory<MarketDepth>))]
 	public class MarketDepth : Cloneable<MarketDepth>, IEnumerable<Quote>, ISynchronizedCollection
 	{
@@ -37,7 +35,7 @@ namespace StockSharp.BusinessEntities
 				throw new ArgumentNullException("security");
 
 			Security = security;
-			_bids = _asks = ArrayHelper<Quote>.EmptyArray;
+			_bids = _asks = ArrayHelper.Empty<Quote>();
 		}
 
 		private int _maxDepth = 100;
@@ -954,7 +952,7 @@ namespace StockSharp.BusinessEntities
 			var dir = GetDirection(price);
 
 			if (dir == null)
-				return ArrayHelper<Quote>.EmptyArray;
+				return ArrayHelper.Empty<Quote>();
 			else
 				return dir == Sides.Buy ? _bids : _asks;
 		}

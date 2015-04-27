@@ -196,11 +196,8 @@ namespace StockSharp.Algo.Storages
 
 				var security = Security.CheckPriceStep();
 
-				if (security.VolumeStep == 0)
-					throw new ArgumentException(LocalizedStrings.Str1027Params.Put(Security.Id));
-
-				metaInfo.PriceStep = security.PriceStep;
-				metaInfo.VolumeStep = security.VolumeStep;
+				metaInfo.PriceStep = security.PriceStep ?? 0.01m;
+				metaInfo.VolumeStep = security.VolumeStep ?? 1m;
 				metaInfo.LastTime = time;
 				metaInfo.FirstTime = time;
 			}

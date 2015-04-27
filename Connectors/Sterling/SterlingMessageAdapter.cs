@@ -1,86 +1,88 @@
-namespace StockSharp.Sterling
+﻿namespace StockSharp.Sterling
 {
 	using System;
 
 	using Ecng.Common;
 
-	using SterlingLib;
-
-	using StockSharp.Messages;
 	using StockSharp.Localization;
+	using StockSharp.Messages;
 
 	/// <summary>
 	/// Адаптер сообщений для Sterling.
 	/// </summary>
-	public partial class SterlingMessageAdapter : MessageAdapter<SterlingSessionHolder>
+	public partial class SterlingMessageAdapter : MessageAdapter
 	{
-		private bool _isSessionOwner;
+		private SterlingClient _client;
 
 		/// <summary>
 		/// Создать <see cref="SterlingMessageAdapter"/>.
 		/// </summary>
-		/// <param name="type">Тип адаптера.</param>
-		/// <param name="sessionHolder">Контейнер для сессии.</param>
-		public SterlingMessageAdapter(MessageAdapterTypes type, SterlingSessionHolder sessionHolder)
-			: base(type, sessionHolder)
+		/// <param name="transactionIdGenerator">Генератор идентификаторов транзакций.</param>
+		public SterlingMessageAdapter(IdGenerator transactionIdGenerator)
+			: base(transactionIdGenerator)
 		{
-			SessionHolder.Initialize += OnSessionInitialize;
-			SessionHolder.UnInitialize += OnSessionUnInitialize;
+			CreateAssociatedSecurity = true;
 		}
 
 		/// <summary>
-		/// Освободить занятые ресурсы.
+		/// Создать для заявки типа <see cref="OrderTypes.Conditional"/> условие, которое поддерживается подключением.
 		/// </summary>
-		protected override void DisposeManaged()
+		/// <returns>Условие для заявки. Если подключение не поддерживает заявки типа <see cref="OrderTypes.Conditional"/>, то будет возвращено null.</returns>
+		public override OrderCondition CreateOrderCondition()
 		{
-			SessionHolder.Initialize -= OnSessionInitialize;
-			SessionHolder.UnInitialize -= OnSessionUnInitialize;
-
-			base.DisposeManaged();
+			return new SterlingOrderCondition();
 		}
 
-		private void OnSessionInitialize()
+		private void SessionOnOnStiShutdown()
 		{
-			switch (Type)
+			SendOutMessage(new ErrorMessage
 			{
-				case MessageAdapterTypes.Transaction:
-				{
-					SessionHolder.Session.OnSTIOrderConfirmMsg += SessionOnStiOrderConfirmMsg;
-					SessionHolder.Session.OnSTIOrderRejectMsg += SessionOnStiOrderRejectMsg;
-					SessionHolder.Session.OnSTIOrderUpdateMsg += SessionOnStiOrderUpdateMsg;
-					SessionHolder.Session.OnSTITradeUpdateMsg += SessionOnStiTradeUpdateMsg;
-					break;
-				}
-				case MessageAdapterTypes.MarketData:
-				{
-					
-					break;
-				}
-				default:
-					throw new ArgumentOutOfRangeException();
-			}
+				Error = new Exception("Sterling is shutdown.")
+			});
 		}
 
-		private void OnSessionUnInitialize()
+		/// <summary>
+		/// Требуется ли дополнительное сообщение <see cref="PortfolioLookupMessage"/> для получения списка портфелей и позиций.
+		/// </summary>
+		public override bool PortfolioLookupRequired
 		{
-			switch (Type)
-			{
-				case MessageAdapterTypes.Transaction:
-				{
-					SessionHolder.Session.OnSTIOrderConfirmMsg -= SessionOnStiOrderConfirmMsg;
-					SessionHolder.Session.OnSTIOrderRejectMsg -= SessionOnStiOrderRejectMsg;
-					SessionHolder.Session.OnSTIOrderUpdateMsg -= SessionOnStiOrderUpdateMsg;
-					SessionHolder.Session.OnSTITradeUpdateMsg -= SessionOnStiTradeUpdateMsg;
-					break;
-				}
-				case MessageAdapterTypes.MarketData:
-				{
-					
-					break;
-				}
-				default:
-					throw new ArgumentOutOfRangeException();
-			}
+			get { return IsTransactionEnabled; }
+		}
+
+		/// <summary>
+		/// Требуется ли дополнительное сообщение <see cref="OrderStatusMessage"/> для получения списка заявок и собственных сделок.
+		/// </summary>
+		public override bool OrderStatusRequired
+		{
+			get { return IsTransactionEnabled; }
+		}
+
+		/// <summary>
+		/// Поддерживается ли торговой системой поиск портфелей.
+		/// </summary>
+		protected override bool IsSupportNativePortfolioLookup
+		{
+			get { return true; }
+		}
+
+		private void DisposeClient()
+		{
+			_client.OnStiOrderConfirm -= SessionOnStiOrderConfirm;
+			_client.OnStiOrderReject -= SessionOnStiOrderReject;
+			_client.OnStiOrderUpdate -= SessionOnStiOrderUpdate;
+			_client.OnStiTradeUpdate -= SessionOnStiTradeUpdate;
+			_client.OnStiAcctUpdate -= SessionOnStiAcctUpdate;
+			_client.OnStiPositionUpdate -= SessionOnStiPositionUpdate;
+
+			_client.OnStiQuoteUpdate -= SessionOnStiQuoteUpdate;
+			_client.OnStiQuoteSnap -= SessionOnStiQuoteSnap;
+			_client.OnStiQuoteRqst -= SessionOnStiQuoteRqst;
+			_client.OnStil2Update -= SessionOnStil2Update;
+			_client.OnStil2Reply -= SessionOnStil2Reply;
+			_client.OnStiGreeksUpdate -= SessionOnStiGreeksUpdate;
+			_client.OnStiNewsUpdate -= SessionOnStiNewsUpdate;
+
+			_client.OnStiShutdown -= SessionOnOnStiShutdown;
 		}
 
 		/// <summary>
@@ -91,133 +93,102 @@ namespace StockSharp.Sterling
 		{
 			switch (message.Type)
 			{
+				case MessageTypes.Reset:
+				{
+					if (_client != null)
+					{
+						try
+						{
+							DisposeClient();
+						}
+						catch (Exception ex)
+						{
+							SendOutError(ex);
+						}
+
+						_client = null;
+					}
+
+					SendOutMessage(new ResetMessage());
+
+					break;
+				}
+
 				case MessageTypes.Connect:
 				{
-					if (SessionHolder.Session == null)
-					{
-						_isSessionOwner = true;
-						SessionHolder.Session = new STIEventsClass();
-						SendOutMessage(new ConnectMessage());
-					}
-					else
-					{
-						SendOutMessage(new ConnectMessage());
-					}
+					if (_client != null)
+						throw new InvalidOperationException(LocalizedStrings.Str1619);
+
+					_client = new SterlingClient();
+
+					_client.OnStiOrderConfirm += SessionOnStiOrderConfirm;
+					_client.OnStiOrderReject += SessionOnStiOrderReject;
+					_client.OnStiOrderUpdate += SessionOnStiOrderUpdate;
+					_client.OnStiTradeUpdate += SessionOnStiTradeUpdate;
+					_client.OnStiAcctUpdate += SessionOnStiAcctUpdate;
+					_client.OnStiPositionUpdate += SessionOnStiPositionUpdate;
+
+					_client.OnStiQuoteUpdate += SessionOnStiQuoteUpdate;
+					_client.OnStiQuoteSnap += SessionOnStiQuoteSnap;
+					_client.OnStiQuoteRqst += SessionOnStiQuoteRqst;
+					_client.OnStil2Update += SessionOnStil2Update;
+					_client.OnStil2Reply += SessionOnStil2Reply;
+					_client.OnStiGreeksUpdate += SessionOnStiGreeksUpdate;
+					_client.OnStiNewsUpdate += SessionOnStiNewsUpdate;
+
+					_client.OnStiShutdown += SessionOnOnStiShutdown;
+
+					SendOutMessage(new ConnectMessage());
 
 					break;
 				}
 
 				case MessageTypes.Disconnect:
 				{
-					if (_isSessionOwner)
-					{
-						SessionHolder.Session = null;
-						SendOutMessage(new DisconnectMessage());
-					}
-					else
-						SendOutMessage(new DisconnectMessage());
+					if (_client == null)
+						throw new InvalidOperationException(LocalizedStrings.Str1856);
+
+					DisposeClient();
+					_client = null;
+
+					SendOutMessage(new DisconnectMessage());
 
 					break;
 				}
 
 				case MessageTypes.MarketData:
 				{
-					var mdMsg = (MarketDataMessage)message;
-
-					switch (mdMsg.DataType)
-					{
-						case MarketDataTypes.Level1:
-						{
-							
-							break;
-						}
-						case MarketDataTypes.MarketDepth:
-							break;
-						case MarketDataTypes.Trades:
-							break;
-						case MarketDataTypes.OrderLog:
-							break;
-						case MarketDataTypes.CandleTimeFrame:
-							break;
-						default:
-							throw new ArgumentOutOfRangeException("message", mdMsg.DataType, LocalizedStrings.Str1618);
-					}
-
-					SendOutMessage(new MarketDataMessage
-					{
-						OriginalTransactionId = mdMsg.TransactionId,
-					});
-
+					ProcessMarketData((MarketDataMessage)message);
 					break;
 				}
 
 				case MessageTypes.OrderRegister:
 				{
-					var regMsg = (OrderRegisterMessage)message;
-					var condition = (SterlingOrderCondition)regMsg.Condition;
-
-					STIOrder order = new STIOrderClass();
-					order.Account = regMsg.PortfolioName;
-					order.Quantity = (int)regMsg.Volume;
-					order.Display = (int)regMsg.VisibleVolume;
-					order.ClOrderID = regMsg.TransactionId.To<string>();
-					order.LmtPrice = (double)regMsg.Price;
-					order.Symbol = regMsg.SecurityId.SecurityCode;
-					order.Destination = regMsg.SecurityId.BoardCode;
-					order.Tif = regMsg.TimeInForce.ToSterlingTif(regMsg.TillDate);
-					order.PriceType = regMsg.OrderType.ToSterlingPriceType(condition);
-					order.User = regMsg.Comment;
-
-					if (regMsg.TillDate != DateTimeOffset.MaxValue)
-						order.EndTime = regMsg.TillDate.ToString("yyyyMMdd");
-
-					if (regMsg.Currency != null)
-						order.Currency = regMsg.Currency.ToString();
-
-					if (regMsg.OrderType == OrderTypes.Conditional)
-					{
-						//order.Discretion = condition.Discretion;
-						//order.ExecInst = condition.ExecutionInstruction;
-						//order.ExecBroker = condition.ExecutionBroker;
-						//order.ExecPriceLmt = condition.ExecutionPriceLimit;
-						//order.PegDiff = condition.PegDiff;
-						//order.TrailAmt = condition.TrailingVolume;
-						//order.TrailInc = condition.TrailingIncrement;
-						//order.StpPrice = (double)(condition.StopPrice ?? 0);
-						//order.MinQuantity = condition.MinVolume;
-						//order.AvgPriceLmt = condition.AveragePriceLimit;
-						//order.Duration = condition.Duration;
-
-						//order.LocateBroker = condition.LocateBroker;
-						//order.LocateQty = condition.LocateVolume;
-						//order.LocateTime = condition.LocateTime;
-
-						//order.OpenClose = condition.Options.IsOpen;
-						//order.Maturity = condition.Options.Maturity;
-						//order.PutCall = condition.Options.Type;
-						//order.Underlying = condition.Options.UnderlyingCode;
-						//order.CoverUncover = condition.Options.IsCover;
-						//order.Instrument = condition.Options.UnderlyingType;
-						//order.StrikePrice = condition.Options.StrikePrice;
-					}
-
-					order.SubmitOrder();
+					ProcessOrderRegisterMessage((OrderRegisterMessage)message);
 					break;
 				}
 
 				case MessageTypes.OrderCancel:
 				{
-					var cancelMsg = (OrderCancelMessage)message;
-					//new STIOrderMaintClass().
-
+					ProcessOrderCancelMessage((OrderCancelMessage)message);
 					break;
 				}
 
 				case MessageTypes.OrderReplace:
 				{
-					var replaceMsg = (OrderReplaceMessage)message;
-					
+					ProcessOrderReplaceMessage((OrderReplaceMessage)message);
+					break;
+				}
 
+				case MessageTypes.PortfolioLookup:
+				{
+					ProcessPortfolioLookupMessage((PortfolioLookupMessage)message);
+					break;
+				}
+
+				case MessageTypes.OrderStatus:
+				{
+					ProcessOrderStatusMessage();
 					break;
 				}
 			}

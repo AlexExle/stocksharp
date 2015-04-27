@@ -31,6 +31,7 @@ namespace StockSharp.Hydra.Finam
 		private const string _sourceName = "Finam";
 
 		[TaskSettingsDisplayName(_sourceName)]
+		[CategoryOrder(_sourceName, 0)]
 		private sealed class FinamSettings : HydraTaskSettings
 		{
 			public FinamSettings(HydraTaskSettings settings)
@@ -168,7 +169,7 @@ namespace StockSharp.Hydra.Finam
 			{
 				this.AddWarningLog(selectedSecurities.IsEmpty()
 					? LocalizedStrings.Str2289
-					: LocalizedStrings.Str2290);
+					: LocalizedStrings.Str2290.Put("Finam"));
 
 				source.Refresh(_finamSecurityStorage, new Security(), SaveSecurity, () => !CanProcess(false));
 
@@ -178,7 +179,7 @@ namespace StockSharp.Hydra.Finam
 						var retVal = IsFinam(s);
 
 						if (!retVal)
-							this.AddWarningLog(LocalizedStrings.Str2291Params, s.Security.Id);
+							this.AddWarningLog(LocalizedStrings.Str2291Params, s.Security.Id, "Finam");
 
 						return retVal;
 					}).ToArray();

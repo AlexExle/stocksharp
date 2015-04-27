@@ -80,17 +80,16 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\StockSharp (GitHub)\StockSharpAssemblyInfo.cs">
+    <Compile Include="..\..\StockSharpAssemblyInfo.cs">
       <Link>Properties\StockSharpAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="ApiLogLevels.cs" />
-    <Compile Include="InitMessage.cs" />
     <Compile Include="Native\Responses\MaxBuySellTPlusResponse.cs" />
     <Compile Include="Native\Responses\PortfolioMctResponse.cs" />
     <Compile Include="TransaqMessageAdapter_MarketData.cs" />
     <Compile Include="TransaqMessageAdapter.cs" />
     <Compile Include="TransaqOrderCondition.cs" />
-    <Compile Include="TransaqSessionHolder.cs" />
+    <Compile Include="TransaqMessageAdapter_Settings.cs" />
     <Compile Include="TransaqMessageAdapter_Transaction.cs" />
     <Compile Include="Native\Commands\CancelNegDealMessage.cs" />
     <Compile Include="Native\Commands\CancelReportMessage.cs" />
@@ -123,7 +122,6 @@
     <Compile Include="Native\Commands\ServerStatusMessage.cs" />
     <Compile Include="Native\Commands\SubscribeMessage.cs" />
     <Compile Include="Native\Commands\SubscribeTicksMessage.cs" />
-    <Compile Include="TransaqAlgoOrderCondition.cs" />
     <Compile Include="Native\Commands\UnsubscribeMessage.cs" />
     <Compile Include="Native\Responses\AllTradesResponse.cs" />
     <Compile Include="Native\Responses\BoardsResponse.cs" />
@@ -203,10 +201,6 @@
     <ProjectReference Include="..\..\Messages\Messages.csproj">
       <Project>{B47F9C23-A4BD-46A9-BF27-54CB3D653503}</Project>
       <Name>Messages</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Xaml\Xaml.csproj">
-      <Project>{64E4D6F0-36B6-4904-9BA7-FFFBE5FF71D8}</Project>
-      <Name>Xaml</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

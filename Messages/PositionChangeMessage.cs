@@ -1,106 +1,125 @@
 namespace StockSharp.Messages
 {
+	using System;
 	using System.ComponentModel;
 	using System.Linq;
 	using System.Runtime.Serialization;
 
 	using Ecng.Common;
 	using Ecng.Collections;
+	using Ecng.Serialization;
 
 	using StockSharp.Localization;
 
 	/// <summary>
 	/// Типы значения изменения в <see cref="PositionChangeMessage"/>.
 	/// </summary>
+	[System.Runtime.Serialization.DataContract]
+	[Serializable]
 	public enum PositionChangeTypes
 	{
 		/// <summary>
 		/// Начальное значение.
 		/// </summary>
+		[EnumMember]
 		[EnumDisplayNameLoc(LocalizedStrings.Str253Key)]
 		BeginValue,
 
 		/// <summary>
 		/// Текущая значение.
 		/// </summary>
+		[EnumMember]
 		[EnumDisplayNameLoc(LocalizedStrings.Str254Key)]
 		CurrentValue,
 
 		/// <summary>
 		/// Заблокировано.
 		/// </summary>
+		[EnumMember]
 		[EnumDisplayNameLoc(LocalizedStrings.Str255Key)]
 		BlockedValue,
 
 		/// <summary>
 		/// Стоимость позиции.
 		/// </summary>
+		[EnumMember]
 		[EnumDisplayNameLoc(LocalizedStrings.Str256Key)]
 		CurrentPrice,
 
 		/// <summary>
 		/// Средневзвешанная цена.
 		/// </summary>
+		[EnumMember]
 		[EnumDisplayNameLoc(LocalizedStrings.Str257Key)]
 		AveragePrice,
 
 		/// <summary>
 		/// Нереализованная прибыль.
 		/// </summary>
+		[EnumMember]
 		[EnumDisplayNameLoc(LocalizedStrings.Str258Key)]
 		UnrealizedPnL,
 
 		/// <summary>
 		/// Реализованная прибыль.
 		/// </summary>
+		[EnumMember]
 		[EnumDisplayNameLoc(LocalizedStrings.Str259Key)]
 		RealizedPnL,
 
 		/// <summary>
 		/// Вариационная маржа.
 		/// </summary>
+		[EnumMember]
 		[EnumDisplayNameLoc(LocalizedStrings.Str260Key)]
 		VariationMargin,
 
 		/// <summary>
 		/// Валюта.
 		/// </summary>
+		[EnumMember]
 		[EnumDisplayNameLoc(LocalizedStrings.Str250Key)]
 		Currency,
 
 		/// <summary>
 		/// Расширенная информация.
 		/// </summary>
+		[EnumMember]
 		[EnumDisplayNameLoc(LocalizedStrings.ExtendedInfoKey)]
 		ExtensionInfo,
 
 		/// <summary>
 		/// Плечо маржи.
 		/// </summary>
+		[EnumMember]
 		[EnumDisplayNameLoc(LocalizedStrings.Str261Key)]
 		Leverage,
 
 		/// <summary>
 		/// Общий размер комиссий.
 		/// </summary>
+		[EnumMember]
 		[EnumDisplayNameLoc(LocalizedStrings.Str262Key)]
 		Commission,
 
 		/// <summary>
 		/// Текущее значение (в лотах).
 		/// </summary>
+		[EnumMember]
 		[EnumDisplayNameLoc(LocalizedStrings.Str263Key)]
 		CurrentValueInLots,
 
 		/// <summary>
 		/// Название депозитария, где находится физически ценная бумага.
 		/// </summary>
+		[EnumMember]
 		[EnumDisplayNameLoc(LocalizedStrings.Str264Key)]
 		DepoName,
 
 		/// <summary>
 		/// Состояние портфеля.
 		/// </summary>
+		[EnumMember]
 		[EnumDisplayNameLoc(LocalizedStrings.Str265Key)]
 		State,
 	}
@@ -108,6 +127,8 @@ namespace StockSharp.Messages
 	/// <summary>
 	/// Сообщение, содержащее данные об изменениях позиции.
 	/// </summary>
+	[System.Runtime.Serialization.DataContract]
+	[Serializable]
 	public sealed class PositionChangeMessage : BaseChangeMessage<PositionChangeTypes>
 	{
 		/// <summary>
@@ -143,6 +164,7 @@ namespace StockSharp.Messages
 		[DisplayNameLoc(LocalizedStrings.Str266Key)]
 		[DescriptionLoc(LocalizedStrings.Str267Key)]
 		[MainCategory]
+		[Nullable]
 		public TPlusLimits? LimitType { get; set; }
 
 		/// <summary>
@@ -163,7 +185,7 @@ namespace StockSharp.Messages
 		}
 
 		/// <summary>
-		/// Создать копию объекта.
+		/// Создать копию объекта <see cref="PositionChangeMessage"/>.
 		/// </summary>
 		/// <returns>Копия.</returns>
 		public override Message Clone()

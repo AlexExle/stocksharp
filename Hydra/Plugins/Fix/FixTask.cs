@@ -19,6 +19,7 @@ namespace StockSharp.Hydra.Fix
 		private const string _sourceName = "FIX";
 
 		[TaskSettingsDisplayName(_sourceName)]
+		[CategoryOrder(_sourceName, 0)]
 		private sealed class FixSettings : ConnectorHydraTaskSettings
 		{
 			public FixSettings(HydraTaskSettings settings)
@@ -89,7 +90,7 @@ namespace StockSharp.Hydra.Fix
 			get { return _settings; }
 		}
 
-		protected override MarketDataConnector<FixTrader> CreateTrader(HydraTaskSettings settings)
+		protected override MarketDataConnector<FixTrader> CreateConnector(HydraTaskSettings settings)
 		{
 			_settings = new FixSettings(settings);
 
@@ -99,7 +100,12 @@ namespace StockSharp.Hydra.Fix
 			return new MarketDataConnector<FixTrader>(EntityRegistry.Securities, this, () =>
 			{
 				var trader = new FixTrader();
-				trader.MarketDataSession.Load(_settings.MarketDataSession.Save());
+#warning TODO
+				trader.MarketDataAdapter.Load(_settings.MarketDataSession.Save());
+
+				if (!this.IsExecLogEnabled())
+					trader.Adapter.InnerAdapters.Remove(trader.TransactionAdapter);
+
 				return trader;
 			});
 		}

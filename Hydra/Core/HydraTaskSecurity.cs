@@ -95,7 +95,7 @@
 			}
 		}
 
-		private CandleSeries[] _candleSeries = ArrayHelper<CandleSeries>.EmptyArray;
+		private CandleSeries[] _candleSeries = ArrayHelper.Empty<CandleSeries>();
 
 		/// <summary>
 		/// Серии свечек, которые необходимо скачивать для данного инструмента.
@@ -237,6 +237,16 @@
 
 				_executionInfo = value;
 			}
+		}
+
+		/// <summary>
+		/// Получить строковое представление.
+		/// </summary>
+		/// <returns>Строковое представление.</returns>
+		public override string ToString()
+		{
+			var s = Security;
+			return s == null ? string.Empty : s.ToString();
 		}
 	}
 }

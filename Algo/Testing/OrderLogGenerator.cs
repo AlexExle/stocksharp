@@ -50,7 +50,7 @@
 		private IdGenerator _idGenerator;
 
 		/// <summary>
-		/// Генератор номера заявки <see cref="Order.Id"/>.
+		/// Генератор идентификатора заявки <see cref="Order.Id"/>.
 		/// </summary>
 		public IdGenerator IdGenerator
 		{
@@ -121,7 +121,7 @@
 					switch (execMsg.ExecutionType)
 					{
 						case ExecutionTypes.Tick:
-							_lastOrderPrice = execMsg.TradePrice;
+							_lastOrderPrice = execMsg.GetTradePrice();
 							break;
 						default:
 							return null;
@@ -157,10 +157,12 @@
 
 			if (isNew)
 			{
-				_lastOrderPrice += RandomGen.GetInt(-MaxPriceStepCount, MaxPriceStepCount) * SecurityDefinition.PriceStep;
+				var priceStep = SecurityDefinition.PriceStep ?? 0.01m;
+
+				_lastOrderPrice += RandomGen.GetInt(-MaxPriceStepCount, MaxPriceStepCount) * priceStep;
 
 				if (_lastOrderPrice <= 0)
-					_lastOrderPrice = SecurityDefinition.PriceStep;
+					_lastOrderPrice = priceStep;
 
 				item = new ExecutionMessage
 				{
@@ -192,7 +194,7 @@
 
 				if (isMatched && trade != null)
 				{
-					item.Volume = RandomGen.GetInt(1, (int)activeOrder.Volume);
+					item.Volume = RandomGen.GetInt(1, (int)activeOrder.GetVolume());
 
 					item.TradeId = trade.TradeId;
 					item.TradePrice = trade.TradePrice;

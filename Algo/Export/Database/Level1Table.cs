@@ -24,6 +24,7 @@
 				case Level1Fields.BestBid:
 				case Level1Fields.BestAsk:
 					return null;
+				case Level1Fields.Decimals:
 				case Level1Fields.BidsCount:
 				case Level1Fields.AsksCount:
 				case Level1Fields.TradesCount:
@@ -80,7 +81,7 @@
 					case Level1Fields.BestAskPrice:
 					case Level1Fields.HighBidPrice:
 					case Level1Fields.LowAskPrice:
-						step = security.PriceStep;
+						step = security.PriceStep ?? 1;
 						break;
 					case Level1Fields.OpenInterest:
 					case Level1Fields.BidsVolume:
@@ -90,10 +91,10 @@
 					case Level1Fields.Volume:
 					case Level1Fields.BestBidVolume:
 					case Level1Fields.BestAskVolume:
-						step = security.VolumeStep;
+						step = security.VolumeStep ?? 1;
 						break;
 					case Level1Fields.Multiplier:
-						step = security.Multiplier;
+						step = security.Multiplier ?? 1;
 						break;
 				}
 

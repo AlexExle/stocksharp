@@ -18,7 +18,7 @@ namespace StockSharp.CQG
 
 		private void SessionOnInstrumentSubscribed(string symbol, CQGInstrument cqgInstrument)
 		{
-			SessionHolder.Instruments[symbol] = cqgInstrument;
+			_instruments[symbol] = cqgInstrument;
 
 			OptionTypes? optionType = null;
 
@@ -42,6 +42,8 @@ namespace StockSharp.CQG
 				Strike = cqgInstrument.Strike,
 				UnderlyingSecurityCode = cqgInstrument.UnderlyingInstrumentName,
 				OptionType = optionType,
+				PriceStep = (decimal)cqgInstrument.TickSize,
+				Decimals = cqgInstrument.Scale
 			});
 
 			SendLevel1Message(cqgInstrument);

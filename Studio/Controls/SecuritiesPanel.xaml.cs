@@ -130,7 +130,7 @@ namespace StockSharp.Studio.Controls
 			_securityIds.SyncDo(list =>
 			{
 				list.Clear();
-				list.AddRange(storage.GetValue("Securities", ArrayHelper<string>.EmptyArray));
+				list.AddRange(storage.GetValue("Securities", ArrayHelper.Empty<string>()));
 			});
 		}
 
@@ -191,7 +191,7 @@ namespace StockSharp.Studio.Controls
 					return;
 				}
 
-				if (security.PriceStep == 0)
+				if (security.PriceStep == null)
 				{
 					mbBuilder.Text(LocalizedStrings.Str1546).Show();
 					return;

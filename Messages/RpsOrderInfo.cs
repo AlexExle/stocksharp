@@ -2,6 +2,8 @@
 {
     using System;
     using System.Runtime.Serialization;
+
+    using Ecng.Common;
     using Ecng.Serialization;
 
 	/// <summary>
@@ -9,26 +11,19 @@
     /// </summary>
     [Serializable]
     [System.Runtime.Serialization.DataContract]
-	public class RpsOrderInfo
+	public class RpsOrderInfo : Cloneable<RpsOrderInfo>
     {
         /// <summary>
         /// Создать <see cref="RpsOrderInfo"/>.
         /// </summary>
         public RpsOrderInfo()
         {
-            Partner = null;
-            SettleCode = null;
-            SettleDate = null;
-            MatchRef = null;
-            ForAccount = null;
-			CurrencyType = CurrencyTypes.RUB;
         }
 
 		/// <summary>
 		/// Код организации – партнера по внебиржевой сделке.
 		/// </summary>
 		[DataMember]
-		[Nullable]
 		public string Partner { get; set; }
 
 		/// <summary>
@@ -45,22 +40,18 @@
 		/// Необязательный параметр.
 		/// </summary>
 		[DataMember]
-		[Nullable]
 		public string MatchRef { get; set; }
 
 		/// <summary>
 		/// Код расчетов при исполнении внебиржевых заявок.
 		/// </summary>
 		[DataMember]
-		[Nullable]
 		public string SettleCode { get; set; }
-
 
 		/// <summary>
 		/// Лицо, от имени которого и за чей счет регистрируется сделка (параметр внебиржевой сделки).
 		/// </summary>
 		[DataMember]
-		[Nullable]
 		public string ForAccount { get; set; }
 
 		/// <summary>
@@ -68,5 +59,22 @@
 		/// </summary>
 		[DataMember]
 		public CurrencyTypes CurrencyType { get; set; }
+
+		/// <summary>
+		/// Создать копию объекта <see cref="RpsOrderInfo"/>.
+		/// </summary>
+		/// <returns>Копия.</returns>
+		public override RpsOrderInfo Clone()
+		{
+			return new RpsOrderInfo
+			{
+				CurrencyType = CurrencyType,
+				ForAccount = ForAccount,
+				MatchRef = MatchRef,
+				Partner = Partner,
+				SettleCode = SettleCode,
+				SettleDate = SettleDate
+			};
+		}
     }
 }

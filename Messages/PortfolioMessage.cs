@@ -32,6 +32,8 @@ namespace StockSharp.Messages
 	/// <summary>
 	/// Сообщение, содержащее данные о портфеле.
 	/// </summary>
+	[DataContract]
+	[Serializable]
 	public class PortfolioMessage : Message
 	{
 		/// <summary>
@@ -71,23 +73,25 @@ namespace StockSharp.Messages
 		public PortfolioStates? State { get; set; }
 
 		/// <summary>
-		/// Номер первоначального сообщения <see cref="PortfolioMessage.TransactionId"/>,
+		/// Идентификатор первоначального сообщения <see cref="PortfolioMessage.TransactionId"/>,
 		/// для которого данное сообщение является ответом.
 		/// </summary>
+		[DataMember]
 		public long OriginalTransactionId { get; set; }
 
 		/// <summary>
-		/// Номер транзакции подписки или отписки на изменения портфеля.
+		/// Идентификатор транзакции подписки или отписки на изменения портфеля.
 		/// </summary>
 		[DataMember]
-		[DisplayNameLoc(LocalizedStrings.Str230Key)]
-		[DescriptionLoc(LocalizedStrings.TransactionIdKey)]
+		[DisplayNameLoc(LocalizedStrings.TransactionKey)]
+		[DescriptionLoc(LocalizedStrings.TransactionIdKey, true)]
 		[MainCategory]
 		public long TransactionId { get; set; }
 
 		/// <summary>
 		/// Является ли сообщение подпиской на изменения портфеля.
 		/// </summary>
+		[DataMember]
 		public bool IsSubscribe { get; set; }
 
 		/// <summary>
@@ -122,20 +126,26 @@ namespace StockSharp.Messages
 		/// <returns>Копия.</returns>
 		public override Message Clone()
 		{
-			var clone = new PortfolioMessage
-			{
-				PortfolioName = PortfolioName,
-				Currency = Currency,
-				BoardCode = BoardCode,
-				OriginalTransactionId = OriginalTransactionId,
-				IsSubscribe = IsSubscribe,
-				State = State,
-				TransactionId = TransactionId,
-			};
+			return CopyTo(new PortfolioMessage());
+		}
 
-			this.CopyExtensionInfo(clone);
+		/// <summary>
+		/// Скопировать данные сообщения в <paramref name="destination"/>.
+		/// </summary>
+		/// <param name="destination">Объект, в который копируется информация.</param>
+		protected PortfolioMessage CopyTo(PortfolioMessage destination)
+		{
+			destination.PortfolioName = PortfolioName;
+			destination.Currency = Currency;
+			destination.BoardCode = BoardCode;
+			destination.OriginalTransactionId = OriginalTransactionId;
+			destination.IsSubscribe = IsSubscribe;
+			destination.State = State;
+			destination.TransactionId = TransactionId;
 
-			return clone;
+			this.CopyExtensionInfo(destination);
+
+			return destination;
 		}
 	}
 }

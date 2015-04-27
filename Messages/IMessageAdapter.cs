@@ -1,52 +1,93 @@
 ﻿namespace StockSharp.Messages
 {
 	using System;
+	using System.Collections.Generic;
+
+	using Ecng.Common;
+	using Ecng.Serialization;
+
+	using StockSharp.Logging;
 
 	/// <summary>
-	/// Типы адаптеров <see cref="IMessageAdapter"/>.
+	/// Интерфейс, описывающий адаптер, конвертирующий сообщения <see cref="Message"/> в команды торговой системы и обратно.
 	/// </summary>
-	public enum MessageAdapterTypes
+	public interface IMessageAdapter : IMessageChannel, IPersistable, ILogReceiver
 	{
 		/// <summary>
-		/// Транзакционный.
+		/// Генератор идентификаторов транзакций.
 		/// </summary>
-		Transaction,
+		IdGenerator TransactionIdGenerator { get; }
 
 		/// <summary>
-		/// Маркет-данные.
+		/// <see langword="true"/>, если адаптер используется для получения маркет-данных, иначе, <see langword="false"/>.
 		/// </summary>
-		MarketData,
-	}
-
-	/// <summary>
-	/// Адаптер, конвертирующий сообщения <see cref="Message"/> в команды торговой системы и обратно.
-	/// </summary>
-	public interface IMessageAdapter : IDisposable, IMessageChannel
-	{
-		/// <summary>
-		/// Тип адаптера.
-		/// </summary>
-		MessageAdapterTypes Type { get; }
+		bool IsMarketDataEnabled { get; set; }
 
 		/// <summary>
-		/// Контейнер для сессии.
+		/// <see langword="true"/>, если адаптер используется для отправки транзакций, иначе, <see langword="false"/>.
 		/// </summary>
-		IMessageSessionHolder SessionHolder { get; }
+		bool IsTransactionEnabled { get; set; }
 
 		/// <summary>
-		/// Добавить <see cref="Message"/> в исходящую очередь <see cref="IMessageAdapter"/>.
+		/// Проверить введенные параметры на валидность.
 		/// </summary>
-		/// <param name="message">Сообщение.</param>
-		void SendOutMessage(Message message);
+		bool IsValid { get; }
 
 		/// <summary>
-		/// Обработчик входящих сообщений.
+		/// Описание классов инструментов, в зависимости от которых будут проставляться параметры в <see cref="SecurityMessage.SecurityType"/> и <see cref="SecurityId.BoardCode"/>.
 		/// </summary>
-		IMessageProcessor InMessageProcessor { get; set; }
+		IDictionary<string, RefPair<SecurityTypes, string>> SecurityClassInfo { get; }
 
 		/// <summary>
-		/// Обработчик исходящих сообщений.
+		/// Настройки механизма отслеживания соединений <see cref="IMessageAdapter"/> с торговом системой.
 		/// </summary>
-		IMessageProcessor OutMessageProcessor { get; set; }
+		ReConnectionSettings ReConnectionSettings { get; }
+
+		/// <summary>
+		/// Интервал оповещения сервера о том, что подключение еще живое. По-умолчанию равно 1 минуте.
+		/// </summary>
+		TimeSpan HeartbeatInterval { get; set; }
+
+		/// <summary>
+		/// Создавать объединенный инструмент для инструментов с разных торговых площадок.
+		/// </summary>
+		bool CreateAssociatedSecurity { get; set; }
+
+		/// <summary>
+		/// Обновлять стакан для инструмента при появлении сообщения <see cref="Level1ChangeMessage"/>.
+		/// </summary>
+		bool CreateDepthFromLevel1 { get; set; }
+
+		/// <summary>
+		/// Код площадки для объединенного инструмента.
+		/// </summary>
+		string AssociatedBoardCode { get; set; }
+
+		/// <summary>
+		/// Требуется ли дополнительное сообщение <see cref="PortfolioLookupMessage"/> для получения списка портфелей и позиций.
+		/// </summary>
+		bool PortfolioLookupRequired { get; }
+
+		/// <summary>
+		/// Требуется ли дополнительное сообщение <see cref="SecurityLookupMessage"/> для получения списка инструментов.
+		/// </summary>
+		bool SecurityLookupRequired { get; }
+
+		/// <summary>
+		/// Требуется ли дополнительное сообщение <see cref="OrderStatusMessage"/> для получения списка заявок и собственных сделок.
+		/// </summary>
+		bool OrderStatusRequired { get; }
+
+		/// <summary>
+		/// Создать для заявки типа <see cref="OrderTypes.Conditional"/> условие, которое поддерживается подключением.
+		/// </summary>
+		/// <returns>Условие для заявки. Если подключение не поддерживает заявки типа <see cref="OrderTypes.Conditional"/>, то будет возвращено null.</returns>
+		OrderCondition CreateOrderCondition();
+
+		/// <summary>
+		/// Проверить, установлено ли еще соединение. Проверяется только в том случае, если было успешно установлено подключение.
+		/// </summary>
+		/// <returns><see langword="true"/>, если соединение еще установлено, <see langword="false"/>, если торговая система разорвала подключение.</returns>
+		bool IsConnectionAlive();
 	}
 }

@@ -68,11 +68,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\StockSharp (GitHub)\StockSharpAssemblyInfo.cs">
+    <Compile Include="..\..\StockSharpAssemblyInfo.cs">
       <Link>Properties\StockSharpAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="RssMarketDataMessageAdapter.cs" />
-    <Compile Include="RssSessionHolder.cs" />
+    <Compile Include="RssMarketDataMessageAdapter_Settings.cs" />
     <Compile Include="RssTrader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Xaml\RssAddressComboBox.cs" />

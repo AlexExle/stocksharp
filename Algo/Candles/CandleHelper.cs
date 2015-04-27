@@ -466,7 +466,7 @@
 
 			return candles
 				.ToMessages<Candle, CandleMessage>()
-				.ToTrades(candle.Security.VolumeStep)
+				.ToTrades(candle.Security.VolumeStep ?? 1m)
 				.ToEntities<ExecutionMessage, Trade>(candle.Security);
 		}
 
@@ -1059,7 +1059,7 @@
 
 			return ThreadingHelper.Timer(() =>
 			{
-				if (connector.ConnectionState != ConnectionStates.Connected || connector.ExportState != ConnectionStates.Connected)
+				if (connector.ConnectionState != ConnectionStates.Connected)
 					return;
 
 				lock (registeredSeries.SyncRoot)

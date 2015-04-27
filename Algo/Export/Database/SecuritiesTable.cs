@@ -31,28 +31,23 @@ namespace StockSharp.Algo.Export.Database
 			};
 			yield return new ColumnDescription("PriceStep")
 			{
-				DbType = typeof(decimal),
-				ValueRestriction = new DecimalRestriction { Scale = security.PriceStep.GetCachedDecimals() }
+				DbType = typeof(decimal?),
+				ValueRestriction = new DecimalRestriction { Scale = security.PriceStep == null ? 1 : security.PriceStep.Value.GetCachedDecimals() }
 			};
-			//yield return new ColumnDescription("StepPrice")
-			//{
-			//	DbType = typeof(decimal?),
-			//	ValueRestriction = new DecimalRestriction()
-			//};
 			yield return new ColumnDescription("VolumeStep")
 			{
-				DbType = typeof(decimal),
-				ValueRestriction = new DecimalRestriction { Scale = security.VolumeStep.GetCachedDecimals() }
+				DbType = typeof(decimal?),
+				ValueRestriction = new DecimalRestriction { Scale = security.VolumeStep == null ? 1 : security.VolumeStep.Value.GetCachedDecimals() }
 			};
 			yield return new ColumnDescription("Multiplier")
 			{
-				DbType = typeof(decimal),
-				ValueRestriction = new DecimalRestriction { Scale = security.Multiplier.GetCachedDecimals() }
+				DbType = typeof(decimal?),
+				ValueRestriction = new DecimalRestriction { Scale = security.Multiplier == null ? 1 : security.Multiplier.Value.GetCachedDecimals() }
 			};
-			//yield return new ColumnDescription("Decimals")
-			//{
-			//	DbType = typeof(int),
-			//};
+			yield return new ColumnDescription("Decimals")
+			{
+				DbType = typeof(int?),
+			};
 			yield return new ColumnDescription("SecurityType")
 			{
 				DbType = typeof(string),
@@ -62,6 +57,11 @@ namespace StockSharp.Algo.Export.Database
 			{
 				DbType = typeof(string),
 				ValueRestriction = new StringRestriction(32)
+			};
+			yield return new ColumnDescription("BinaryOptionType")
+			{
+				DbType = typeof(string),
+				ValueRestriction = new StringRestriction(256)
 			};
 			yield return new ColumnDescription("Strike")
 			{
@@ -77,6 +77,64 @@ namespace StockSharp.Algo.Export.Database
 			{
 				DbType = typeof(DateTimeOffset?),
 			};
+			yield return new ColumnDescription("Currency")
+			{
+				DbType = typeof(string),
+				ValueRestriction = new StringRestriction(3)
+			};
+			yield return new ColumnDescription("Name")
+			{
+				DbType = typeof(string),
+				ValueRestriction = new StringRestriction(256)
+			};
+			yield return new ColumnDescription("ShortName")
+			{
+				DbType = typeof(string),
+				ValueRestriction = new StringRestriction(64)
+			};
+			yield return new ColumnDescription("SettlementDate")
+			{
+				DbType = typeof(DateTimeOffset?),
+			};
+			yield return new ColumnDescription("Bloomberg")
+			{
+				DbType = typeof(string),
+				ValueRestriction = new StringRestriction(16)
+			};
+			yield return new ColumnDescription("CUSIP")
+			{
+				DbType = typeof(string),
+				ValueRestriction = new StringRestriction(16)
+			};
+			yield return new ColumnDescription("IQFeed")
+			{
+				DbType = typeof(string),
+				ValueRestriction = new StringRestriction(16)
+			};
+			yield return new ColumnDescription("InteractiveBrokers")
+			{
+				DbType = typeof(int?),
+			};
+			yield return new ColumnDescription("ISIN")
+			{
+				DbType = typeof(string),
+				ValueRestriction = new StringRestriction(16)
+			};
+			yield return new ColumnDescription("Plaza")
+			{
+				DbType = typeof(string),
+				ValueRestriction = new StringRestriction(16)
+			};
+			yield return new ColumnDescription("Ric")
+			{
+				DbType = typeof(string),
+				ValueRestriction = new StringRestriction(16)
+			};
+			yield return new ColumnDescription("SEDOL")
+			{
+				DbType = typeof(string),
+				ValueRestriction = new StringRestriction(16)
+			};
 		}
 
 		protected override IDictionary<string, object> ConvertToParameters(SecurityMessage value)
@@ -86,15 +144,27 @@ namespace StockSharp.Algo.Export.Database
 				{ "SecurityCode", value.SecurityId.SecurityCode },
 				{ "BoardCode", value.SecurityId.BoardCode },
 				{ "PriceStep", value.PriceStep },
-				//{ "StepPrice", value.StepPrice },
 				{ "VolumeStep", value.VolumeStep },
 				{ "Multiplier", value.Multiplier },
-				//{ "Decimals", value.Decimals },
+				{ "Decimals", value.Decimals },
 				{ "SecurityType", value.SecurityType.ToString() },
 				{ "OptionType", value.OptionType.ToString() },
-				{ "Strike", value.Strike == 0 ? (decimal?)null : value.Strike },
+				{ "BinaryOptionType", value.BinaryOptionType },
+				{ "Strike", value.Strike },
 				{ "UnderlyingSecurityCode", value.UnderlyingSecurityCode },
 				{ "ExpiryDate", value.ExpiryDate },
+				{ "Currency", value.Currency.ToString() },
+				{ "Name", value.Name },
+				{ "ShortName", value.ShortName },
+				{ "SettlementDate", value.SettlementDate },
+				{ "Bloomberg", value.SecurityId.Bloomberg },
+				{ "CUSIP", value.SecurityId.Cusip },
+				{ "IQFeed", value.SecurityId.IQFeed },
+				{ "InteractiveBrokers", value.SecurityId.InteractiveBrokers },
+				{ "ISIN", value.SecurityId.Isin },
+				{ "Plaza", value.SecurityId.Plaza },
+				{ "RIC", value.SecurityId.Ric },
+				{ "SEDOL", value.SecurityId.Sedol },
 			};
 			return result;
 		}

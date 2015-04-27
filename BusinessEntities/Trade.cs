@@ -111,8 +111,6 @@ namespace StockSharp.BusinessEntities
 		[PropertyOrder(5)]
 		public Sides? OrderDirection { get; set; }
 
-		private bool _isSystem = true;
-
 		/// <summary>
 		/// Является ли сделка системной.
 		/// </summary>
@@ -121,17 +119,15 @@ namespace StockSharp.BusinessEntities
 		[DescriptionLoc(LocalizedStrings.IsSystemTradeKey)]
 		[MainCategory]
 		[PropertyOrder(6)]
-		public bool IsSystem
-		{
-			get { return _isSystem; }
-			set { _isSystem = value; }
-		}
+		[Nullable]
+		public bool? IsSystem { get; set; }
 
 		/// <summary>
 		/// Системный статус сделки.
 		/// </summary>
 		[Browsable(false)]
-		public int Status { get; set; }
+		[Nullable]
+		public int? Status { get; set; }
 
 		/// <summary>
 		/// Количество открытых позиций (открытый интерес).

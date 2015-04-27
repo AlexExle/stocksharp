@@ -22,19 +22,19 @@ namespace StockSharp.Btce
 
 		private string GetPortfolioName()
 		{
-			return SessionHolder.Key.To<string>().GetHashCode().To<string>();
+			return Key.To<string>().GetHashCode().To<string>();
 		}
 
 		private void ProcessOrderRegister(OrderRegisterMessage regMsg)
 		{
-			var reply = Session.MakeOrder(
+			var reply = _client.MakeOrder(
 				regMsg.SecurityId.SecurityCode.Replace('/', '_').ToLowerInvariant(),
 				regMsg.Side.ToBtce(),
 				regMsg.Price,
 				regMsg.Volume
 			);
 
-			_orderInfo.Add(reply.Command.OrderId, new RefPair<long, decimal>(regMsg.TransactionId, regMsg.Volume));
+			_orderInfo.Add(reply.Command.OrderId, RefTuple.Create(regMsg.TransactionId, regMsg.Volume));
 
 			SendOutMessage(new ExecutionMessage
 			{
@@ -52,7 +52,10 @@ namespace StockSharp.Btce
 
 		private void ProcessOrderCancel(OrderCancelMessage cancelMsg)
 		{
-			var reply = Session.CancelOrder(cancelMsg.OrderId);
+			if (cancelMsg.OrderId == null)
+				throw new InvalidOperationException(LocalizedStrings.Str2252Params.Put(cancelMsg.OrderTransactionId));
+
+			var reply = _client.CancelOrder(cancelMsg.OrderId.Value);
 
 			SendOutMessage(new ExecutionMessage
 			{
@@ -141,27 +144,27 @@ namespace StockSharp.Btce
 		{
 			foreach (var fund in funds)
 			{
-				SendOutMessage(SessionHolder
+				SendOutMessage(this
 					.CreatePortfolioChangeMessage(fund.Key)
 						.Add(PositionChangeTypes.CurrentValue, (decimal)fund.Value));
 			}
 		}
 
-		private void ProcessOrderStatusMessage()
+		private void ProcessOrderStatus()
 		{
 			if (_requestOrderFirst)
 			{
 				_requestOrderFirst = false;
 
-				var orders = Session.GetOrders().Items.Values;
+				var orders = _client.GetOrders().Items.Values;
 
 				foreach (var o in orders)
 				{
 					var order = o;
-					_orderInfo.SafeAdd(order.Id, key => new RefPair<long, decimal>(TransactionIdGenerator.GetNextId(), (decimal)order.Volume));
+					_orderInfo.SafeAdd(order.Id, key => RefTuple.Create(TransactionIdGenerator.GetNextId(), (decimal)order.Volume));
 				}
 
-				var trades = Session.GetMyTrades(0).Items.Values;
+				var trades = _client.GetMyTrades(0).Items.Values;
 
 				foreach (var trade in trades.OrderBy(t => t.Id))
 				{
@@ -193,7 +196,7 @@ namespace StockSharp.Btce
 
 			if (_hasMyTrades)
 			{
-				var mtReply = Session.GetMyTrades(_lastMyTradeId + 1);
+				var mtReply = _client.GetMyTrades(_lastMyTradeId + 1);
 
 				_hasMyTrades = false;
 
@@ -205,7 +208,7 @@ namespace StockSharp.Btce
 
 			if (_hasActiveOrders)
 			{
-				var orderReply = Session.GetOrders();
+				var orderReply = _client.GetOrders();
 
 				_hasActiveOrders = false;
 
@@ -215,6 +218,22 @@ namespace StockSharp.Btce
 					ProcessOrder(order);
 				}
 			}
+		}
+
+		private void ProcessPortfolioLookup(PortfolioLookupMessage message)
+		{
+			var reply = _client.GetInfo();
+			ProcessFunds(reply.State.Funds);
+
+			SendOutMessage(new PortfolioMessage
+			{
+				PortfolioName = GetPortfolioName(),
+				State = reply.State.Rights.CanTrade ? PortfolioStates.Active : PortfolioStates.Blocked,
+				OriginalTransactionId = message == null ? 0 : message.TransactionId
+			});
+
+			if (message != null)
+				SendOutMessage(new PortfolioLookupResultMessage { OriginalTransactionId = message.TransactionId });
 		}
 	}
 }

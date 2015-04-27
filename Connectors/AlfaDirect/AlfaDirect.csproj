@@ -85,13 +85,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\StockSharp (GitHub)\StockSharpAssemblyInfo.cs">
+    <Compile Include="..\..\StockSharpAssemblyInfo.cs">
       <Link>Properties\StockSharpAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="AlfaDirectMessageAdapter.cs" />
     <Compile Include="AlfaDirectMessageAdapter_MarketData.cs" />
     <Compile Include="AlfaDirectMessageAdapter_Transaction.cs" />
-    <Compile Include="AlfaDirectSessionHolder.cs" />
+    <Compile Include="AlfaDirectMessageAdapter_Settings.cs" />
     <Compile Include="AlfaException.cs" />
     <Compile Include="AlfaOrderCondition.cs" />
     <Compile Include="Native\AlfaTable.cs" />
@@ -121,10 +121,6 @@
     <ProjectReference Include="..\..\Messages\Messages.csproj">
       <Project>{B47F9C23-A4BD-46A9-BF27-54CB3D653503}</Project>
       <Name>Messages</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Xaml\Xaml.csproj">
-      <Project>{64e4d6f0-36b6-4904-9ba7-fffbe5ff71d8}</Project>
-      <Name>Xaml</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

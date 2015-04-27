@@ -86,13 +86,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\StockSharp (GitHub)\StockSharpAssemblyInfo.cs">
+    <Compile Include="..\..\StockSharpAssemblyInfo.cs">
       <Link>Properties\StockSharpAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="OpenECryMessageAdapter.cs" />
     <Compile Include="OpenECryMessageAdapter_MarketData.cs" />
     <Compile Include="OpenECryMessageAdapter_Transaction.cs" />
-    <Compile Include="OpenECrySessionHolder.cs" />
+    <Compile Include="OpenECryMessageAdapter_Settings.cs" />
     <Compile Include="Xaml\OpenECryAddressComboBox.cs" />
     <Compile Include="OpenECryAddresses.cs" />
     <Compile Include="OpenECryOrderCondition.cs" />
@@ -121,10 +121,6 @@
     <ProjectReference Include="..\..\Messages\Messages.csproj">
       <Project>{b47f9c23-a4bd-46a9-bf27-54cb3d653503}</Project>
       <Name>Messages</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Xaml\Xaml.csproj">
-      <Project>{64E4D6F0-36B6-4904-9BA7-FFFBE5FF71D8}</Project>
-      <Name>Xaml</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

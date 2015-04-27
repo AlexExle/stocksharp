@@ -5,12 +5,15 @@ namespace StockSharp.Messages
 	using System.Runtime.Serialization;
 
 	using Ecng.Common;
+	using Ecng.Serialization;
 
 	using StockSharp.Localization;
 
 	/// <summary>
 	/// Сообщение, содержащее данные об инструменте.
 	/// </summary>
+	[System.Runtime.Serialization.DataContract]
+	[Serializable]
 	public class SecurityMessage : Message
 	{
 		/// <summary>
@@ -48,7 +51,8 @@ namespace StockSharp.Messages
 		[DisplayNameLoc(LocalizedStrings.Str365Key)]
 		[DescriptionLoc(LocalizedStrings.Str366Key)]
 		[MainCategory]
-		public decimal VolumeStep { get; set; }
+		[Nullable]
+		public decimal? VolumeStep { get; set; }
 
 		/// <summary>
 		/// Коэфициент объема между лотом и активом.
@@ -57,7 +61,18 @@ namespace StockSharp.Messages
 		[DisplayNameLoc(LocalizedStrings.Str330Key)]
 		[DescriptionLoc(LocalizedStrings.LotVolumeKey)]
 		[MainCategory]
-		public decimal Multiplier { get; set; }
+		[Nullable]
+		public decimal? Multiplier { get; set; }
+
+		/// <summary>
+		/// Количество знаков в цене после запятой.
+		/// </summary>
+		[DataMember]
+		[DisplayNameLoc(LocalizedStrings.Str547Key)]
+		[DescriptionLoc(LocalizedStrings.Str548Key)]
+		[MainCategory]
+		[Nullable]
+		public int? Decimals { get; set; }
 
 		/// <summary>
 		/// Минимальный шаг цены.
@@ -66,7 +81,8 @@ namespace StockSharp.Messages
 		[DisplayNameLoc(LocalizedStrings.PriceStepKey)]
 		[DescriptionLoc(LocalizedStrings.MinPriceStepKey)]
 		[MainCategory]
-		public decimal PriceStep { get; set; }
+		[Nullable]
+		public decimal? PriceStep { get; set; }
 
 		/// <summary>
 		/// Тип инструмента.
@@ -75,6 +91,7 @@ namespace StockSharp.Messages
 		[DisplayNameLoc(LocalizedStrings.TypeKey)]
 		[DescriptionLoc(LocalizedStrings.Str360Key)]
 		[MainCategory]
+		[Nullable]
 		public SecurityTypes? SecurityType { get; set; }
 
 		/// <summary>
@@ -84,15 +101,17 @@ namespace StockSharp.Messages
 		[DisplayNameLoc(LocalizedStrings.ExpiryDateKey)]
 		[DescriptionLoc(LocalizedStrings.Str371Key)]
 		[MainCategory]
+		[Nullable]
 		public DateTimeOffset? ExpiryDate { get; set; }
 
 		/// <summary>
 		/// Дата выплат по инструмента (для деривативов и облигаций).
 		/// </summary>
 		[DataMember]
-		[DisplayNameLoc(LocalizedStrings.PaymentDateKey)]
+		[DisplayNameLoc(LocalizedStrings.SettlementDateKey)]
 		[DescriptionLoc(LocalizedStrings.Str373Key)]
 		[MainCategory]
+		[Nullable]
 		public DateTimeOffset? SettlementDate { get; set; }
 
 		/// <summary>
@@ -109,7 +128,8 @@ namespace StockSharp.Messages
 		[DataMember]
 		[DisplayNameLoc(LocalizedStrings.StrikeKey)]
 		[DescriptionLoc(LocalizedStrings.OptionStrikePriceKey)]
-		public decimal Strike { get; set; }
+		[Nullable]
+		public decimal? Strike { get; set; }
 
 		/// <summary>
 		/// Тип опциона.
@@ -117,6 +137,7 @@ namespace StockSharp.Messages
 		[DataMember]
 		[DisplayNameLoc(LocalizedStrings.OptionsContractKey)]
 		[DescriptionLoc(LocalizedStrings.OptionContractTypeKey)]
+		[Nullable]
 		public OptionTypes? OptionType { get; set; }
 
 		/// <summary>
@@ -134,12 +155,14 @@ namespace StockSharp.Messages
 		[DisplayNameLoc(LocalizedStrings.Str250Key)]
 		[DescriptionLoc(LocalizedStrings.Str382Key)]
 		[MainCategory]
+		[Nullable]
 		public CurrencyTypes? Currency { get; set; }
 
 		/// <summary>
-		/// Номер первоначального сообщения <see cref="SecurityLookupMessage.TransactionId"/>,
+		/// Идентификатор первоначального сообщения <see cref="SecurityLookupMessage.TransactionId"/>,
 		/// для которого данное сообщение является ответом.
 		/// </summary>
+		[DataMember]
 		public long OriginalTransactionId { get; set; }
 
 		/// <summary>
@@ -196,6 +219,7 @@ namespace StockSharp.Messages
 			destination.OriginalTransactionId = OriginalTransactionId;
 			destination.OptionType = OptionType;
 			destination.PriceStep = PriceStep;
+			destination.Decimals = Decimals;
 			destination.SecurityType = SecurityType;
 			destination.SettlementDate = SettlementDate;
 			destination.Strike = Strike;

@@ -15,10 +15,9 @@ namespace StockSharp.Hydra.Blackwood
 	using StockSharp.BusinessEntities;
 	using StockSharp.Hydra.Core;
 	using StockSharp.Messages;
+	using StockSharp.Localization;
 
 	using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
-
-	using StockSharp.Localization;
 
 	[Category(TaskCategories.American)]
 	[TaskDisplayName(_sourceName)]
@@ -27,6 +26,7 @@ namespace StockSharp.Hydra.Blackwood
 		private const string _sourceName = "Fusion/Blackwood";
 
 		[TaskSettingsDisplayName(_sourceName)]
+		[CategoryOrder(_sourceName, 0)]
 		private sealed class BlackwoodSettings : ConnectorHydraTaskSettings
 		{
 			public BlackwoodSettings(HydraTaskSettings settings)
@@ -84,7 +84,7 @@ namespace StockSharp.Hydra.Blackwood
 
 		public BlackwoodTask()
 		{
-			_supportedCandleSeries = BlackwoodSessionHolder.TimeFrames.Select(tf => new CandleSeries
+			_supportedCandleSeries = BlackwoodMessageAdapter.TimeFrames.Select(tf => new CandleSeries
 			{
 				CandleType = typeof(TimeFrameCandle),
 				Arg = tf
@@ -122,7 +122,7 @@ namespace StockSharp.Hydra.Blackwood
 			get { return _supportedCandleSeries; }
 		}
 
-		protected override MarketDataConnector<BlackwoodTrader> CreateTrader(HydraTaskSettings settings)
+		protected override MarketDataConnector<BlackwoodTrader> CreateConnector(HydraTaskSettings settings)
 		{
 			_settings = new BlackwoodSettings(settings);
 

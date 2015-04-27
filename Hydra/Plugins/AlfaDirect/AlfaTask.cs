@@ -26,6 +26,7 @@ namespace StockSharp.Hydra.AlfaDirect
 		private const string _sourceName = "AlfaDirect";
 
 		[TaskSettingsDisplayName(_sourceName)]
+		[CategoryOrder(_sourceName, 0)]
 		private sealed class AlfaSettings : ConnectorHydraTaskSettings
 		{
 			public AlfaSettings(HydraTaskSettings settings)
@@ -94,7 +95,7 @@ namespace StockSharp.Hydra.AlfaDirect
 			get { return _supportedCandleSeries; }
 		}
 
-		protected override MarketDataConnector<AlfaTrader> CreateTrader(HydraTaskSettings settings)
+		protected override MarketDataConnector<AlfaTrader> CreateConnector(HydraTaskSettings settings)
 		{
 			_settings = new AlfaSettings(settings);
 
@@ -108,7 +109,7 @@ namespace StockSharp.Hydra.AlfaDirect
 			return new MarketDataConnector<AlfaTrader>(EntityRegistry.Securities, this, () => new AlfaTrader
 			{
 				Login = _settings.Login,
-				Password = _settings.Password.To<string>(),
+				Password = _settings.Password.To<string>()
 			});
 		}
 	}

@@ -35,6 +35,12 @@
   <ItemGroup>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="StockSharp.Algo.History">
+      <HintPath>..\..\..\Algo.History\StockSharp.Algo.History.dll</HintPath>
+    </Reference>
+    <Reference Include="StockSharp.Fix">
+      <HintPath>..\..\..\Connectors\Fix\StockSharp.Fix.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xaml" />
@@ -54,9 +60,6 @@
     <Reference Include="Ecng.Xaml">
       <HintPath>..\..\..\References\Ecng\Ecng.Xaml.dll</HintPath>
     </Reference>
-    <Reference Include="QuickFix">
-      <HintPath>..\..\..\References\QuickFix.dll</HintPath>
-    </Reference>
     <Reference Include="Xceed.Wpf.Toolkit">
       <HintPath>..\..\..\References\Ecng\Xceed.Wpf.Toolkit.dll</HintPath>
     </Reference>
@@ -67,14 +70,6 @@
     </Compile>
     <Compile Include="FixTask.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="StockSharp.Algo.History">
-      <HintPath>..\..\..\References\StockSharp.Algo.History.dll</HintPath>
-    </Reference>
-    <Reference Include="StockSharp.Fix">
-      <HintPath>..\..\..\References\StockSharp.Fix.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Resource Include="fix_logo.png" />
@@ -96,6 +91,10 @@
       <Project>{C4476ADD-A3D5-41BB-9D43-55D865863B78}</Project>
       <Name>Logging</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\Messages\Messages.csproj">
+      <Project>{B47F9C23-A4BD-46A9-BF27-54CB3D653503}</Project>
+      <Name>Messages</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Core\CorePublic.csproj">
       <Project>{95ca16e0-0a47-43a3-aab7-7e0803e817ca}</Project>
       <Name>CorePublic</Name>
@@ -105,8 +104,7 @@
   <PropertyGroup>
     <PostBuildEvent>call ..\..\..\plugins.bat $(ProjectName) $(ConfigurationName)
 
-copy StockSharp.Fix.dll ..\..\..\..\Hydra\bin\$(ConfigurationName)\Plugins\StockSharp.Fix.dll
-copy QuickFix.dll ..\..\..\..\Hydra\bin\$(ConfigurationName)\Plugins\QuickFix.dll</PostBuildEvent>
+copy StockSharp.Fix.dll ..\..\..\..\Hydra\bin\$(ConfigurationName)\Plugins\StockSharp.Fix.dll</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

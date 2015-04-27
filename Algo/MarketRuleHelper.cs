@@ -88,7 +88,7 @@ namespace StockSharp.Algo
 			/// <returns>Строковое представление.</returns>
 			public override string ToString()
 			{
-				return "{0} {2}/{3} (0x{1:X})".Put(Name, GetHashCode(), Order.TransactionId, (Order.Id == 0 ? Order.StringId : Order.Id.To<string>()));
+				return "{0} {2}/{3} (0x{1:X})".Put(Name, GetHashCode(), Order.TransactionId, (Order.Id == null ? Order.StringId : Order.Id.To<string>()));
 			}
 		}
 
@@ -788,7 +788,7 @@ namespace StockSharp.Algo
 
 				var basket = sec as BasketSecurity;
 
-				if (Connector is IEmulationConnector)
+				if (Connector is HistoryEmulationConnector)
 				{
 					// в рилтайме сделки приходят гарантированно по одной. см. BaseTrader.GetTrade
 					// в эмуляции сделки приходят кучками, но все для одного и того же интсрумента. см. EmuTrader.Message
@@ -1536,7 +1536,7 @@ namespace StockSharp.Algo
 					throw new ArgumentNullException("condition");
 
 				_condition = condition;
-				Name = LocalizedStrings.Str1064 + series;
+				Name = LocalizedStrings.Str1064 + " " + series;
 			}
 
 			protected override void OnProcessCandle(Candle candle)
@@ -1593,7 +1593,7 @@ namespace StockSharp.Algo
 					throw new ArgumentNullException("condition");
 
 				_condition = condition;
-				Name = LocalizedStrings.Str1065 + candle;
+				Name = LocalizedStrings.Str1065 + " " + candle;
 			}
 
 			protected override void OnProcessCandle(Candle candle)
@@ -1608,7 +1608,7 @@ namespace StockSharp.Algo
 			public FinishedCandleRule(Candle candle)
 				: base(candle)
 			{
-				Name = LocalizedStrings.Str1066 + candle;
+				Name = LocalizedStrings.Str1066 + " " + candle;
 			}
 
 			protected override void OnProcessCandle(Candle candle)
@@ -1730,7 +1730,7 @@ namespace StockSharp.Algo
 		/// <returns>Правило.</returns>
 		public static MarketRule<CandleSeries, Candle> WhenCandlesStarted(this CandleSeries series)
 		{
-			return new CandleStateSeriesRule(series, CandleStates.Started) { Name = LocalizedStrings.Str1072 + series };
+			return new CandleStateSeriesRule(series, CandleStates.Started) { Name = LocalizedStrings.Str1072 + " " + series };
 		}
 
 		/// <summary>
@@ -1750,7 +1750,7 @@ namespace StockSharp.Algo
 		/// <returns>Правило.</returns>
 		public static MarketRule<CandleSeries, Candle> WhenCandlesFinished(this CandleSeries series)
 		{
-			return new CandleStateSeriesRule(series, CandleStates.Finished) { Name = LocalizedStrings.Str1073 + series };
+			return new CandleStateSeriesRule(series, CandleStates.Finished) { Name = LocalizedStrings.Str1073 + " " + series };
 		}
 
 		/// <summary>

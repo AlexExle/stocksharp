@@ -73,12 +73,13 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\StockSharp (GitHub)\StockSharpAssemblyInfo.cs">
+    <Compile Include="..\StockSharpAssemblyInfo.cs">
       <Link>Properties\StockSharpAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="AuthenticationClient.cs" />
     <Compile Include="BaseCommunityClient.cs" />
     <Compile Include="BaseServiceClient.cs" />
+    <Compile Include="DocClient.cs" />
     <Compile Include="DocPage.cs" />
     <Compile Include="CommunityAuthorization.cs" />
     <Compile Include="ErrorCodes.cs" />

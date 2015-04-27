@@ -2,6 +2,8 @@
 {
     using System;
     using System.Runtime.Serialization;
+
+    using Ecng.Common;
     using Ecng.Serialization;
 
 	/// <summary>
@@ -9,33 +11,19 @@
     /// </summary>
     [Serializable]
     [System.Runtime.Serialization.DataContract]
-	public class RepoOrderInfo
+	public class RepoOrderInfo : Cloneable<RepoOrderInfo>
     {
         /// <summary>
         /// Создать <see cref="RepoOrderInfo"/>.
         /// </summary>
         public RepoOrderInfo()
         {
-            Partner = null;
-            Term = null;
-            RefundRate = null;
-            Rate = null;
-            BlockSecurities = false;
-            MatchRef = null;
-            SettleCode = null;
-            SettleDate = null;
-            SecondPrice = null;
-            StartDiscount = null;
-            LowerDiscount = null;
-            UpperDiscount = null;
-			Value = null;
         }
 
 		/// <summary>
 		/// Код организации – партнера по внебиржевой сделке.
 		/// </summary>
 		[DataMember]
-		[Nullable]
 		public string Partner { get; set; }
 
 		/// <summary>
@@ -73,14 +61,12 @@
 		/// Необязательный параметр.
 		/// </summary>
 		[DataMember]
-		[Nullable]
 		public string MatchRef { get; set; }
         
 		/// <summary>
 		/// Код расчетов при исполнении внебиржевых заявок.
 		/// </summary>
 		[DataMember]
-		[Nullable]
 		public string SettleCode { get; set; }
 
 		/// <summary>
@@ -124,5 +110,29 @@
 		[DataMember]
 		[Nullable]
 		public decimal? Value { get; set; }
+
+		/// <summary>
+		/// Создать копию объекта <see cref="RepoOrderInfo"/>.
+		/// </summary>
+		/// <returns>Копия.</returns>
+		public override RepoOrderInfo Clone()
+		{
+			return new RepoOrderInfo
+			{
+				MatchRef = MatchRef,
+				Partner = Partner,
+				SettleCode = SettleCode,
+				SettleDate = SettleDate,
+				Value = Value,
+				BlockSecurities = BlockSecurities,
+				LowerDiscount = LowerDiscount,
+				Rate = Rate,
+				RefundRate = RefundRate,
+				SecondPrice = SecondPrice,
+				StartDiscount = StartDiscount,
+				Term = Term,
+				UpperDiscount = UpperDiscount
+			};
+		}
     }
 }

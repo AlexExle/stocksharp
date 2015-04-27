@@ -184,10 +184,10 @@ namespace StockSharp.Xaml
 				_order.Portfolio = Portfolio;
 				_order.Price = PriceCtrl.Value ?? 0;
 				_order.Volume = VolumeCtrl.Value ?? 0;
-				_order.VisibleVolume = VisibleVolumeCtrl.Value ?? 0;
+				_order.VisibleVolume = VisibleVolumeCtrl.Value;
 				_order.Direction = IsBuyCtrl.IsChecked == true ? Sides.Buy : Sides.Sell;
 
-				switch ((OrderWindowTif)TimeInForceCtrl.SelectedValue)
+				switch ((OrderWindowTif?)TimeInForceCtrl.SelectedValue)
 				{
 					case OrderWindowTif.MatchOrCancel:
 						_order.TimeInForce = TimeInForce.MatchOrCancel;
@@ -197,7 +197,6 @@ namespace StockSharp.Xaml
 						break;
 					case OrderWindowTif.Gtc:
 						_order.TimeInForce = TimeInForce.PutInQueue;
-						_order.ExpiryDate = DateTimeOffset.MaxValue;
 						break;
 					case OrderWindowTif.Today:
 						_order.TimeInForce = TimeInForce.PutInQueue;
@@ -206,6 +205,8 @@ namespace StockSharp.Xaml
 					case OrderWindowTif.Gtd:
 						_order.TimeInForce = TimeInForce.PutInQueue;
 						_order.ExpiryDate = (ExpiryDate.Value ?? DateTime.Today).ApplyTimeZone(Security.Board.Exchange.TimeZoneInfo);
+						break;
+					case null:
 						break;
 					default:
 						throw new ArgumentOutOfRangeException();
@@ -249,14 +250,14 @@ namespace StockSharp.Xaml
 				{
 					case TimeInForce.PutInQueue:
 					{
-						if (value.ExpiryDate == DateTimeOffset.MaxValue)
+						if (value.ExpiryDate == null || value.ExpiryDate == DateTimeOffset.MaxValue)
 							TimeInForceCtrl.SelectedValue = OrderWindowTif.Gtc;
 						else if (value.ExpiryDate == DateTimeOffset.Now.Date.ApplyTimeZone(Security.Board.Exchange.TimeZoneInfo))
 							TimeInForceCtrl.SelectedValue = OrderWindowTif.Today;
 						else
 						{
 							TimeInForceCtrl.SelectedValue = OrderWindowTif.Gtd;
-							ExpiryDate.Value = value.ExpiryDate == DateTimeOffset.MaxValue ? (DateTime?)null : value.ExpiryDate.Date;
+							ExpiryDate.Value = value.ExpiryDate == DateTimeOffset.MaxValue ? (DateTime?)null : value.ExpiryDate.Value.Date;
 							//throw new ArgumentOutOfRangeException("value", value.ExpiryDate, LocalizedStrings.Str1541);
 						}
 
@@ -267,6 +268,9 @@ namespace StockSharp.Xaml
 						break;
 					case TimeInForce.CancelBalance:
 						TimeInForceCtrl.SelectedValue = OrderWindowTif.Gtc;
+						break;
+					case null:
+						TimeInForceCtrl.SelectedValue = null;
 						break;
 					default:
 						throw new ArgumentOutOfRangeException();
@@ -305,8 +309,8 @@ namespace StockSharp.Xaml
 
 			var isNull = Security == null;
 
-			PriceCtrl.Increment = isNull ? 0.01m : Security.PriceStep;
-			VolumeCtrl.Increment = isNull ? 1m : Security.VolumeStep;
+			PriceCtrl.Increment = isNull ? 0.01m : Security.PriceStep ?? 1m;
+			VolumeCtrl.Increment = isNull ? 1m : Security.VolumeStep ?? 1m;
 
 			MinPrice.IsEnabled = MaxPrice.IsEnabled = BestBidPrice.IsEnabled = BestAskPrice.IsEnabled
 				= LastTradePrice.IsEnabled = !isNull;

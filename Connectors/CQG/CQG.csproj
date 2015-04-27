@@ -61,14 +61,14 @@
     <Reference Include="System.Runtime.Serialization" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\StockSharp (GitHub)\StockSharpAssemblyInfo.cs">
+    <Compile Include="..\..\StockSharpAssemblyInfo.cs">
       <Link>Properties\StockSharpAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="CQGMessageAdapter.cs" />
     <Compile Include="CQGMessageAdapter_MarketData.cs" />
     <Compile Include="CQGMessageAdapter_Transaction.cs" />
     <Compile Include="CQGOrderCondition.cs" />
-    <Compile Include="CQGSessionHolder.cs" />
+    <Compile Include="CQGMessageAdapter_Settings.cs" />
     <Compile Include="CQGTrader.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

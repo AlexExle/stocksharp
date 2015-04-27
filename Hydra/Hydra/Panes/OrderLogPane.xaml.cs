@@ -36,18 +36,13 @@ namespace StockSharp.Hydra.Panes
 
 		public override string Title
 		{
-			get { return LocalizedStrings.Str2908 + SelectedSecurity; }
+			get { return LocalizedStrings.OrderLog + " " + SelectedSecurity; }
 		}
 
 		public override Security SelectedSecurity
 		{
 			get { return SelectSecurityBtn.SelectedSecurity; }
 			set { SelectSecurityBtn.SelectedSecurity = value; }
-		}
-
-		public override bool InProcess
-		{
-			get { return Progress.IsStarted; }
 		}
 
 		private IEnumerableEx<ExecutionMessage> GetOrderLog()
@@ -57,7 +52,7 @@ namespace StockSharp.Hydra.Panes
 				.Load(From, To + TimeHelper.LessOneDay);
 
 			if (IsNonSystem.IsChecked == false)
-				orderLog = orderLog.Where(o => o.IsSystem).ToEx(orderLog.Count);
+				orderLog = orderLog.Where(o => o.IsSystem != false).ToEx(orderLog.Count);
 
 			return orderLog;
 		}

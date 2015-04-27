@@ -4,20 +4,23 @@ namespace StockSharp.Messages
 	using System.Runtime.Serialization;
 
 	using Ecng.Common;
+	using Ecng.Serialization;
 
 	using StockSharp.Localization;
 
 	/// <summary>
 	/// Сообщение, содержащее информацию для регистрации заявки.
 	/// </summary>
+	[System.Runtime.Serialization.DataContract]
+	[Serializable]
 	public class OrderRegisterMessage : OrderMessage
 	{
 		/// <summary>
-		/// Номер транзакции.
+		/// Идентификатор транзакции.
 		/// </summary>
 		[DataMember]
-		[DisplayNameLoc(LocalizedStrings.Str230Key)]
-		[DescriptionLoc(LocalizedStrings.TransactionIdKey)]
+		[DisplayNameLoc(LocalizedStrings.TransactionKey)]
+		[DescriptionLoc(LocalizedStrings.TransactionIdKey, true)]
 		[MainCategory]
 		public long TransactionId { get; set; }
 
@@ -30,8 +33,6 @@ namespace StockSharp.Messages
 		[MainCategory]
 		public decimal Price { get; set; }
 
-		private decimal _volume;
-
 		/// <summary>
 		/// Количество контрактов в заявке.
 		/// </summary>
@@ -39,15 +40,7 @@ namespace StockSharp.Messages
 		[DisplayNameLoc(LocalizedStrings.VolumeKey)]
 		[DescriptionLoc(LocalizedStrings.OrderVolumeKey)]
 		[MainCategory]
-		public decimal Volume
-		{
-			get { return _volume; }
-			set
-			{
-				_volume = value;
-				VisibleVolume = value;
-			}
-		}
+		public decimal Volume { get; set; }
 
 		/// <summary>
 		/// Видимое количество контрактов в заявке.
@@ -56,7 +49,8 @@ namespace StockSharp.Messages
 		[DisplayNameLoc(LocalizedStrings.VisibleVolumeKey)]
 		[DescriptionLoc(LocalizedStrings.Str127Key)]
 		[MainCategory]
-		public decimal VisibleVolume { get; set; }
+		[Nullable]
+		public decimal? VisibleVolume { get; set; }
 
 		/// <summary>
 		/// Направление заявки (покупка или продажа).
@@ -68,15 +62,6 @@ namespace StockSharp.Messages
 		public Sides Side { get; set; }
 
 		/// <summary>
-		/// Является ли заявка системной.
-		/// </summary>
-		[DataMember]
-		[DisplayNameLoc(LocalizedStrings.Str139Key)]
-		[DescriptionLoc(LocalizedStrings.Str140Key)]
-		[MainCategory]
-		public bool IsSystem { get; set; }
-
-		/// <summary>
 		/// Комментарий к выставляемой заявке.
 		/// </summary>
 		[DataMember]
@@ -86,18 +71,17 @@ namespace StockSharp.Messages
 		public string Comment { get; set; }
 
 		/// <summary>
-		/// Время действия заявки.
+		/// Время экспирации заявки. По-умолчанию равно <see langword="null"/>, что означает действие заявки до отмены (GTC).
 		/// </summary>
 		/// <remarks>
-		/// Если значение равно <see cref="DateTime.Today"/>, то заявка выставляется сроком на текущую сессию.
-		/// Если значение равно <see cref="DateTime.MaxValue"/>, то заявка выставляется до отмены (GTC).
+		/// Если значение равно <see langword="null"/> или <see cref="DateTimeOffset.MaxValue"/>, то заявка выставляется до отмены (GTC).
 		/// Иначе, указывается конкретный срок.
 		/// </remarks>
 		[DataMember]
 		[DisplayNameLoc(LocalizedStrings.Str141Key)]
 		[DescriptionLoc(LocalizedStrings.Str142Key)]
 		[MainCategory]
-		public DateTimeOffset TillDate { get; set; }
+		public DateTimeOffset? TillDate { get; set; }
 
 		/// <summary>
 		/// Условие заявки (например, параметры стоп- или алго- заявков).
@@ -113,7 +97,8 @@ namespace StockSharp.Messages
 		[DisplayNameLoc(LocalizedStrings.Str231Key)]
 		[DescriptionLoc(LocalizedStrings.Str232Key)]
 		[MainCategory]
-		public TimeInForce TimeInForce { get; set; }
+		[Nullable]
+		public TimeInForce? TimeInForce { get; set; }
 
 		/// <summary>
 		/// Информация для РЕПО\РЕПО-М заявок.
@@ -130,11 +115,6 @@ namespace StockSharp.Messages
 		[DescriptionLoc(LocalizedStrings.Str236Key)]
 		[MainCategory]
 		public RpsOrderInfo RpsInfo { get; set; }
-
-		///// <summary>
-		///// Валюта, в которой выражается значение цены <see cref="Price"/>.
-		///// </summary>
-		//public CurrencyTypes? Currency { get; set; }
 
 		/// <summary>
 		/// Создать <see cref="OrderRegisterMessage"/>.
@@ -164,12 +144,11 @@ namespace StockSharp.Messages
 				Comment = Comment,
 				Condition = Condition,
 				TillDate = TillDate,
-				IsSystem = IsSystem,
 				OrderType = OrderType,
 				PortfolioName = PortfolioName,
 				Price = Price,
-				RepoInfo = RepoInfo,
-				RpsInfo = RpsInfo,
+				RepoInfo = RepoInfo.CloneNullable(),
+				RpsInfo = RpsInfo.CloneNullable(),
 				SecurityId = SecurityId,
 				//SecurityType = SecurityType,
 				Side = Side,
@@ -178,7 +157,9 @@ namespace StockSharp.Messages
 				VisibleVolume = VisibleVolume,
 				Volume = Volume,
 				Currency = Currency,
-				UserOrderId = UserOrderId
+				UserOrderId = UserOrderId,
+				ClientCode = ClientCode,
+				BrokerCode = BrokerCode,
 			};
 
 			CopyTo(clone);

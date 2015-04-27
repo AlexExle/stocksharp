@@ -30,6 +30,7 @@ namespace StockSharp.Hydra.Plaza
 		private const string _sourceName = "Plaza";
 
 		[TaskSettingsDisplayName(_sourceName)]
+		[CategoryOrder(_sourceName, 0)]
 		private sealed class PlazaSettings : ConnectorHydraTaskSettings
 		{
 			public PlazaSettings(HydraTaskSettings settings)
@@ -170,7 +171,7 @@ namespace StockSharp.Hydra.Plaza
 			Connector.Connector.StreamManager.RevisionManager.SaveRevisions();
 		}
 
-		protected override MarketDataConnector<PlazaTrader> CreateTrader(HydraTaskSettings settings)
+		protected override MarketDataConnector<PlazaTrader> CreateConnector(HydraTaskSettings settings)
 		{
 			_settings = new PlazaSettings(settings);
 
@@ -183,7 +184,7 @@ namespace StockSharp.Hydra.Plaza
 					_settings.Login = string.Empty;
 					_settings.Password = new SecureString();
 					_settings.IsCGate = false;
-					_settings.CGateKey = PlazaSessionHolder.DemoCGateKey;
+					_settings.CGateKey = PlazaConnectionPoolSettings.DemoCGateKey;
 					_settings.OnlySystemTrades = true;
 					_settings.IsFastRepl = false;
 
@@ -223,7 +224,7 @@ namespace StockSharp.Hydra.Plaza
 
 			connector.TableRegistry.StreamRegistry.IsFastRepl = _settings.IsFastRepl;
 
-			connector.SyncTables(_settings.Tables);
+			connector.TableRegistry.SyncTables(_settings.Tables);
 
 			// добавляем все возможные колонки во все таблицы
 			connector.Tables.ForEach(t => t.Metadata.AllColumns.ForEach(c => t.Columns.TryAdd(c)));
